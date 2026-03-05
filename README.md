@@ -15,7 +15,6 @@ Peak Monitor är en integration för Home Assistant som hjälper dig övervaka o
 - **[Installation Guide](docs/INSTALL.md)** - Comprehensive step-by-step installation instructions
 - **[Configuration Guide](docs/CONFIGURATION.md)** - Detailed explanation of every configuration option
 - **[Configuration Examples](docs/CONFIGURATION_EXAMPLES.md)** - Ready-made settings for common Swedish DSOs
-- **[Real-World Examples](docs/REAL_WORLD_EXAMPLES.md)** - Annotated graphs from live installations
 - **[Sensor Reference](docs/REFERENCE.md)** - Complete guide to all sensors and their usage
 - **[Real-World Examples](docs/REAL_WORLD_EXAMPLES.md)** - Annotated screenshots showing sensor behaviour in real scenarios
 

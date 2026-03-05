@@ -28,7 +28,7 @@ HACS (Home Assistant Community Store) is the easiest way to install and update c
 
 #### Step 1: Install HACS
 If you haven't installed HACS yet:
-1. Follow the official HACS installation guide at https://hacs.xyz/docs/setup/download
+1. Follow the official HACS installation guide at https://hacs.xyz/docs/use
 2. Restart Home Assistant after installation
 
 #### Step 2: Add Peak Monitor Repository
