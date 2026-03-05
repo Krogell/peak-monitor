@@ -1,0 +1,425 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Konfigurera Effekttariff",
+        "description": "Ställ in övervakning av effekttariff för svensk elprissättning",
+        "data": {
+          "name": "Namn"
+        },
+        "sections": {
+          "basic_setup_section": {
+            "name": "Grundinställning",
+            "data": {
+              "consumption_sensor": "Förbrukningssensor",
+              "number_of_peaks": "Antal Toppar att Spåra",
+              "only_one_peak_per_day": "Räkna endast en topp per dag",
+              "price_per_kw": "Pris per kWh/h (SEK)",
+              "fixed_monthly_fee": "Fast månadsavgift (SEK)",
+              "active_months": "Aktiva Månader",
+              "sensor_resets_every_hour": "Sensorn återställer sig varje timme"
+            },
+            "data_description": {
+              "consumption_sensor": "Välj sensorn som mäter timförbrukning",
+              "number_of_peaks": "Hur många månatliga toppar att spåra för tariffberäkning",
+              "only_one_peak_per_day": "När aktiverat, registreras endast det högsta värdet per dag som en topp",
+              "price_per_kw": "Pris per kW, används för kostnadsberäkningar",
+              "fixed_monthly_fee": "Fast månatlig nätverksavgift läggs till kostnadsberäkningarna",
+              "active_months": "Månader då tariffen är aktiv",
+              "sensor_resets_every_hour": "Aktivera om din förbrukningssensor återställs till 0 varje timme. Inaktivera om den är kumulativ"
+            }
+          },
+          "weekdays_section": {
+            "name": "Vardagar",
+            "data": {
+              "active_start_hour": "Starttimme",
+              "active_end_hour": "Sluttimme"
+            },
+            "data_description": {
+              "active_start_hour": "Timme när tariffövervakning startar på vardagar (0–23)",
+              "active_end_hour": "Timme när tariffövervakning slutar på vardagar (0–23). Samma som start = 24h övervakning"
+            }
+          },
+          "weekends_section": {
+            "name": "Helger",
+            "data": {
+              "weekend_behavior": "Helgbeteende",
+              "weekend_start_hour": "Helgens Starttimme",
+              "weekend_end_hour": "Helgens Sluttimme"
+            },
+            "data_description": {
+              "weekend_behavior": "Hur tariffen beter sig på lördagar och söndagar",
+              "weekend_start_hour": "Timme när helgtariffbeteendet börjar (standard 6). Samma som slut = hela dagen",
+              "weekend_end_hour": "Timme när helgtariffbeteendet slutar (standard 21). Samma som start = hela dagen"
+            }
+          },
+          "holidays_section": {
+            "name": "Helgdagar",
+            "data": {
+              "holiday_behavior": "Helgdagsbeteende",
+              "holidays": "Definiera Helgdagar"
+            },
+            "data_description": {
+              "holiday_behavior": "Hur tariffen beter sig på helgdagar",
+              "holidays": "Välj helgdagar och helgaftnar som ska utlösa helgdagsbeteendet"
+            }
+          },
+          "reduced_section": {
+            "name": "Periodisk Reducerad Tariff",
+            "data": {
+              "daily_reduced_tariff_enabled": "Aktivera Daglig Reducerad Tariff",
+              "reduced_also_on_weekends": "Även på Helger",
+              "reduced_start_hour": "Reducerad Period Starttimme",
+              "reduced_end_hour": "Reducerad Period Sluttimme"
+            },
+            "data_description": {
+              "daily_reduced_tariff_enabled": "Aktivera en daglig period med reducerad tariffviktning",
+              "reduced_also_on_weekends": "Aktivera även den reducerade tariffperioden på lördagar och söndagar (t.ex. för Ellevios nattaxa)",
+              "reduced_start_hour": "Start för reducerad tariffperiod",
+              "reduced_end_hour": "Slut för reducerad tariffperiod"
+            }
+          },
+          "advanced_section": {
+            "name": "Avancerat",
+            "data": {
+              "estimation_sensor": "Uppskattningssensor (valfri)",
+              "external_reduced_sensor": "Extern Reduce-sensor (valfri)",
+              "external_mute_sensor": "Extern Mute-sensor (valfri)",
+              "reset_value": "Återställningsvärde",
+              "output_unit": "Utdatavärde",
+              "reduced_factor": "Multiplikationsfaktor för reducerad taxa"
+            },
+            "data_description": {
+              "estimation_sensor": "Valfritt: Extern sensor för förbrukningsuppskattning. Lämna tom för att använda intern uppskattning",
+              "external_reduced_sensor": "Valfri binär sensor som när PÅ aktiverar reducerat tariffläge",
+              "external_mute_sensor": "Valfri binär sensor som när PÅ stänger av tariffen helt",
+              "reset_value": "Värde som sensorerna återställs till efter varje dag och månad",
+              "output_unit": "Unit used for output sensor values (W = Watt, kW = Kilowatt)",
+              "reduced_factor": "Faktor som multipliceras med förbrukningen under reducerad taxa-perioder (0,01–1,0, standard 0,5)"
+            }
+          }
+        }
+      },
+      "reconfigure": {
+        "title": "Konfigurera om Peak Monitor",
+        "description": "Uppdatera konfiguration för effekttariff",
+        "data": {
+          "name": "Namn"
+        },
+        "sections": {
+          "basic_setup_section": {
+            "name": "Grundinställning",
+            "data": {
+              "consumption_sensor": "Förbrukningssensor",
+              "number_of_peaks": "Antal Toppar att Spåra",
+              "only_one_peak_per_day": "Räkna endast en topp per dag",
+              "price_per_kw": "Pris per kWh/h (SEK)",
+              "fixed_monthly_fee": "Fast månadsavgift (SEK)",
+              "active_months": "Aktiva Månader",
+              "sensor_resets_every_hour": "Sensorn återställer sig varje timme"
+            },
+            "data_description": {
+              "consumption_sensor": "Välj sensorn som mäter timförbrukning",
+              "number_of_peaks": "Hur många månatliga toppar att spåra för tariffberäkning",
+              "only_one_peak_per_day": "När aktiverat, registreras endast det högsta värdet per dag som en topp",
+              "price_per_kw": "Pris per kW, används för kostnadsberäkningar",
+              "fixed_monthly_fee": "Fast månatlig nätverksavgift läggs till kostnadsberäkningarna",
+              "active_months": "Månader då tariffen är aktiv",
+              "sensor_resets_every_hour": "Aktivera om din förbrukningssensor återställs till 0 varje timme. Inaktivera om den är kumulativ"
+            }
+          },
+          "weekdays_section": {
+            "name": "Vardagar",
+            "data": {
+              "active_start_hour": "Starttimme",
+              "active_end_hour": "Sluttimme"
+            },
+            "data_description": {
+              "active_start_hour": "Timme när tariffövervakning startar på vardagar (0–23)",
+              "active_end_hour": "Timme när tariffövervakning slutar på vardagar (0–23). Samma som start = 24h övervakning"
+            }
+          },
+          "weekends_section": {
+            "name": "Helger",
+            "data": {
+              "weekend_behavior": "Helgbeteende",
+              "weekend_start_hour": "Helgens Starttimme",
+              "weekend_end_hour": "Helgens Sluttimme"
+            },
+            "data_description": {
+              "weekend_behavior": "Hur tariffen beter sig på lördagar och söndagar",
+              "weekend_start_hour": "Timme när helgtariffbeteendet börjar (standard 6). Samma som slut = hela dagen",
+              "weekend_end_hour": "Timme när helgtariffbeteendet slutar (standard 21). Samma som start = hela dagen"
+            }
+          },
+          "holidays_section": {
+            "name": "Helgdagar",
+            "data": {
+              "holiday_behavior": "Helgdagsbeteende",
+              "holidays": "Definiera Helgdagar"
+            },
+            "data_description": {
+              "holiday_behavior": "Hur tariffen beter sig på helgdagar",
+              "holidays": "Välj helgdagar och helgaftnar som ska utlösa helgdagsbeteendet"
+            }
+          },
+          "reduced_section": {
+            "name": "Periodisk Reducerad Tariff",
+            "data": {
+              "daily_reduced_tariff_enabled": "Aktivera Daglig Reducerad Tariff",
+              "reduced_also_on_weekends": "Även på Helger",
+              "reduced_start_hour": "Reducerad Period Starttimme",
+              "reduced_end_hour": "Reducerad Period Sluttimme"
+            },
+            "data_description": {
+              "daily_reduced_tariff_enabled": "Aktivera en daglig period med reducerad tariffviktning",
+              "reduced_also_on_weekends": "Aktivera även den reducerade tariffperioden på lördagar och söndagar (t.ex. för Ellevios nattaxa)",
+              "reduced_start_hour": "Start för reducerad tariffperiod",
+              "reduced_end_hour": "Slut för reducerad tariffperiod"
+            }
+          },
+          "advanced_section": {
+            "name": "Avancerat",
+            "data": {
+              "estimation_sensor": "Uppskattningssensor (valfri)",
+              "external_reduced_sensor": "Extern Reduce-sensor (valfri)",
+              "external_mute_sensor": "Extern Mute-sensor (valfri)",
+              "reset_value": "Återställningsvärde",
+              "output_unit": "Utdatavärde",
+              "reduced_factor": "Multiplikationsfaktor för reducerad taxa"
+            },
+            "data_description": {
+              "estimation_sensor": "Valfritt: Extern sensor för förbrukningsuppskattning. Lämna tom för att använda intern uppskattning",
+              "external_reduced_sensor": "Valfri binär sensor som när PÅ aktiverar reducerat tariffläge",
+              "external_mute_sensor": "Valfri binär sensor som när PÅ stänger av tariffen helt",
+              "reset_value": "Värde som sensorerna återställs till efter varje dag och månad",
+              "output_unit": "Unit used for output sensor values (W = Watt, kW = Kilowatt)",
+              "reduced_factor": "Faktor som multipliceras med förbrukningen under reducerad taxa-perioder (0,01–1,0, standard 0,5)"
+            }
+          }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Inställningar för Effekttariff",
+        "sections": {
+          "basic_setup_section": {
+            "name": "Grundinställning",
+            "data": {
+              "consumption_sensor": "Förbrukningssensor",
+              "number_of_peaks": "Antal Toppar att Spåra",
+              "only_one_peak_per_day": "Räkna endast en topp per dag",
+              "price_per_kw": "Pris per kWh/h (SEK)",
+              "fixed_monthly_fee": "Fast månadsavgift (SEK)",
+              "active_months": "Aktiva Månader",
+              "sensor_resets_every_hour": "Sensorn återställer sig varje timme"
+            },
+            "data_description": {
+              "consumption_sensor": "Välj sensorn som mäter timförbrukning",
+              "number_of_peaks": "Hur många månatliga toppar att spåra för tariffberäkning",
+              "only_one_peak_per_day": "När aktiverat, registreras endast det högsta värdet per dag som en topp",
+              "price_per_kw": "Pris per kW, används för kostnadsberäkningar",
+              "fixed_monthly_fee": "Fast månatlig nätverksavgift läggs till kostnadsberäkningarna",
+              "active_months": "Månader då tariffen är aktiv",
+              "sensor_resets_every_hour": "Aktivera om din förbrukningssensor återställs till 0 varje timme. Inaktivera om den är kumulativ"
+            }
+          },
+          "weekdays_section": {
+            "name": "Vardagar",
+            "data": {
+              "active_start_hour": "Starttimme",
+              "active_end_hour": "Sluttimme"
+            },
+            "data_description": {
+              "active_start_hour": "Timme när tariffövervakning startar på vardagar (0–23)",
+              "active_end_hour": "Timme när tariffövervakning slutar på vardagar (0–23). Samma som start = 24h övervakning"
+            }
+          },
+          "weekends_section": {
+            "name": "Helger",
+            "data": {
+              "weekend_behavior": "Helgbeteende",
+              "weekend_start_hour": "Helgens Starttimme",
+              "weekend_end_hour": "Helgens Sluttimme"
+            },
+            "data_description": {
+              "weekend_behavior": "Hur tariffen beter sig på lördagar och söndagar",
+              "weekend_start_hour": "Timme när helgtariffbeteendet börjar (standard 6). Samma som slut = hela dagen",
+              "weekend_end_hour": "Timme när helgtariffbeteendet slutar (standard 21). Samma som start = hela dagen"
+            }
+          },
+          "holidays_section": {
+            "name": "Helgdagar",
+            "data": {
+              "holiday_behavior": "Helgdagsbeteende",
+              "holidays": "Definiera Helgdagar"
+            },
+            "data_description": {
+              "holiday_behavior": "Hur tariffen beter sig på helgdagar",
+              "holidays": "Välj helgdagar och helgaftnar som ska utlösa helgdagsbeteendet"
+            }
+          },
+          "reduced_section": {
+            "name": "Periodisk Reducerad Tariff",
+            "data": {
+              "daily_reduced_tariff_enabled": "Aktivera Daglig Reducerad Tariff",
+              "reduced_also_on_weekends": "Även på Helger",
+              "reduced_start_hour": "Reducerad Period Starttimme",
+              "reduced_end_hour": "Reducerad Period Sluttimme"
+            },
+            "data_description": {
+              "daily_reduced_tariff_enabled": "Aktivera en daglig period med reducerad tariffviktning",
+              "reduced_also_on_weekends": "Aktivera även den reducerade tariffperioden på lördagar och söndagar (t.ex. för Ellevios nattaxa)",
+              "reduced_start_hour": "Start för reducerad tariffperiod",
+              "reduced_end_hour": "Slut för reducerad tariffperiod"
+            }
+          },
+          "advanced_section": {
+            "name": "Avancerat",
+            "data": {
+              "estimation_sensor": "Uppskattningssensor (valfri)",
+              "external_reduced_sensor": "Extern Reduce-sensor (valfri)",
+              "external_mute_sensor": "Extern Mute-sensor (valfri)",
+              "reset_value": "Återställningsvärde",
+              "output_unit": "Utdatavärde",
+              "reduced_factor": "Multiplikationsfaktor för reducerad taxa"
+            },
+            "data_description": {
+              "external_reduced_sensor": "Valfri binär sensor som när PÅ aktiverar reducerat tariffläge",
+              "external_mute_sensor": "Valfri binär sensor som när PÅ stänger av tariffen helt",
+              "reset_value": "Värde som sensorerna återställs till efter varje dag och månad",
+              "output_unit": "Unit used for output sensor values (W = Watt, kW = Kilowatt)",
+              "estimation_sensor": "Valfritt: Extern sensor för förbrukningsuppskattning. Lämna tom för att använda intern uppskattning",
+              "reduced_factor": "Faktor som multipliceras med förbrukningen under reducerad taxa-perioder (0,01–1,0, standard 0,5)"
+            }
+          }
+        }
+      }
+    }
+  },
+  "selector": {
+    "months": {
+      "options": {
+        "1": "Januari",
+        "2": "Februari",
+        "3": "Mars",
+        "4": "April",
+        "5": "Maj",
+        "6": "Juni",
+        "7": "Juli",
+        "8": "Augusti",
+        "9": "September",
+        "10": "Oktober",
+        "11": "November",
+        "12": "December"
+      }
+    },
+    "holidays": {
+      "options": {
+        "official_holidays": "Officiella helgdagar (röda dagar)",
+        "epiphany_eve": "Trettondagsafton (5 jan)",
+        "easter_eve": "Påskafton",
+        "midsummer_eve": "Midsommarafton",
+        "christmas_eve": "Julafton (24 dec)",
+        "new_years_eve": "Nyårsafton (31 dec)"
+      }
+    },
+    "holiday_behavior": {
+      "options": {
+        "no_tariff": "Ingen tariff",
+        "reduced_tariff": "Reducerad tariff"
+      }
+    },
+    "weekend_behavior": {
+      "options": {
+        "no_tariff": "Ingen tariff",
+        "reduced_tariff": "Reducerad tariff",
+        "full_tariff": "Full tariff"
+      }
+    },
+    "input_unit": {
+      "options": {
+        "Wh": "Wh",
+        "kWh": "kWh"
+      }
+    },
+    "output_unit": {
+      "options": {
+        "W": "W (Watt)",
+        "kW": "kW (Kilowatt)"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "target": {
+        "name": "Mål"
+      },
+      "relative_to_target": {
+        "name": "Uppskattning relativt mål"
+      },
+      "percentage_of_target": {
+        "name": "Uppskattning i procent av mål"
+      },
+      "daily_peak": {
+        "name": "Dagstopp"
+      },
+      "status": {
+        "name": "Status",
+        "state": {
+          "inactive": "Inaktiv",
+          "reduced": "Reducerad",
+          "active": "Aktiv"
+        }
+      },
+      "running_peak_1": {
+        "name": "Löpande Topp 1"
+      },
+      "running_peak_2": {
+        "name": "Löpande Topp 2"
+      },
+      "running_peak_3": {
+        "name": "Löpande Topp 3"
+      },
+      "running_peak_4": {
+        "name": "Löpande Topp 4"
+      },
+      "running_peak_5": {
+        "name": "Löpande Topp 5"
+      },
+      "running_peak_6": {
+        "name": "Löpande Topp 6"
+      },
+      "running_peak_7": {
+        "name": "Löpande Topp 7"
+      },
+      "running_peak_8": {
+        "name": "Löpande Topp 8"
+      },
+      "running_peak_9": {
+        "name": "Löpande Topp 9"
+      },
+      "running_peak_10": {
+        "name": "Löpande Topp 10"
+      },
+      "running_average": {
+        "name": "Löpande Medelvärde"
+      },
+      "interval_consumption": {
+        "name": "Intervallförbrukning"
+      },
+      "interval_consumption_estimate": {
+        "name": "Uppskattning för intervallets förbrukning"
+      },
+      "power_grid_peak_tariff": {
+        "name": "Effekttariff"
+      },
+      "cost_increase_estimate": {
+        "name": "Uppskattad kostnadsökning"
+      }
+    }
+  }
+}

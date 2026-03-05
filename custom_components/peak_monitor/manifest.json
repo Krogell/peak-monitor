@@ -1,0 +1,16 @@
+{
+  "domain": "peak_monitor",
+  "name": "Peak Monitor",
+  "codeowners": [
+    "@krogell"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/krogell/peak-monitor",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/krogell/peak-monitor/issues",
+  "requirements": [],
+  "version": "2026.3",
+  "single_config_entry": false,
+  "integration_type": "service",
+  "homeassistant": "2024.6.0"
+}

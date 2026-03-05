@@ -1,0 +1,414 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure Peak Monitor",
+        "description": "Set up power tariff monitoring for Swedish electricity pricing",
+        "data": {
+          "name": "Name"
+        },
+        "sections": {
+          "basic_setup_section": {
+            "name": "Basic setup",
+            "data": {
+              "consumption_sensor": "Consumption Sensor",
+              "number_of_peaks": "Number of Peaks to Track",
+              "only_one_peak_per_day": "Only count one peak per day",
+              "price_per_kw": "Price per kWh/h (SEK)",
+              "fixed_monthly_fee": "Fixed Monthly Fee (SEK)",
+              "active_months": "Active Months",
+              "sensor_resets_every_hour": "Sensor resets every hour"
+            },
+            "data_description": {
+              "consumption_sensor": "Select the sensor that measures hourly power consumption",
+              "number_of_peaks": "How many monthly peaks to track for tariff calculation",
+              "only_one_peak_per_day": "When enabled, only the highest reading per day is recorded as a peak",
+              "price_per_kw": "Price per kW used for cost calculations",
+              "fixed_monthly_fee": "Fixed monthly network fee added to cost calculations",
+              "active_months": "Months during which the tariff is active",
+              "sensor_resets_every_hour": "Enable if your consumption sensor resets to 0 every hour. Disable if it is cumulative"
+            }
+          },
+          "weekdays_section": {
+            "name": "Weekdays",
+            "data": {
+              "active_start_hour": "Start Hour",
+              "active_end_hour": "End Hour"
+            },
+            "data_description": {
+              "active_start_hour": "Hour when tariff monitoring starts on weekdays (0–23)",
+              "active_end_hour": "Hour when tariff monitoring ends on weekdays (0–23). Same as start = 24-hour monitoring"
+            }
+          },
+          "weekends_section": {
+            "name": "Weekends",
+            "data": {
+              "weekend_behavior": "Weekend Behaviour",
+              "weekend_start_hour": "Weekend Start Hour",
+              "weekend_end_hour": "Weekend End Hour"
+            },
+            "data_description": {
+              "weekend_behavior": "How the tariff behaves on Saturdays and Sundays",
+              "weekend_start_hour": "Hour when weekend tariff behaviour starts (default 6). Same as end = full day",
+              "weekend_end_hour": "Hour when weekend tariff behaviour ends (default 21). Same as start = full day"
+            }
+          },
+          "holidays_section": {
+            "name": "Holidays",
+            "data": {
+              "holiday_behavior": "Holiday Behaviour",
+              "holidays": "Define Holidays"
+            },
+            "data_description": {
+              "holiday_behavior": "How the tariff behaves on holidays",
+              "holidays": "Select which holidays and holiday evenings should trigger the holiday behaviour"
+            }
+          },
+          "reduced_section": {
+            "name": "Periodic Reduced Tariff",
+            "data": {
+              "daily_reduced_tariff_enabled": "Enable Daily Reduced Tariff",
+              "reduced_start_hour": "Reduced Period Start Hour",
+              "reduced_end_hour": "Reduced Period End Hour"
+            },
+            "data_description": {
+              "daily_reduced_tariff_enabled": "Enable a daily period with reduced tariff weighting",
+              "reduced_start_hour": "Start of the reduced tariff period",
+              "reduced_end_hour": "End of the reduced tariff period"
+            }
+          },
+          "advanced_section": {
+            "name": "Advanced",
+            "data": {
+              "estimation_sensor": "Estimation Sensor (optional)",
+              "external_reduced_sensor": "External Reduce Sensor (optional)",
+              "external_mute_sensor": "External Mute Sensor (optional)",
+              "reset_value": "Reset Value",
+              "output_unit": "Output Value",
+              "reduced_factor": "Reduced Tariff Multiplication Factor"
+            },
+            "data_description": {
+              "estimation_sensor": "Optional: External sensor for consumption estimation. Leave empty to use built-in estimation",
+              "external_reduced_sensor": "Optional binary sensor. When ON, activates reduced tariff mode",
+              "external_mute_sensor": "Optional binary sensor. When ON, mutes the tariff completely",
+              "reset_value": "Value the sensor resets to at the start of each month",
+              "output_unit": "Unit used for output sensor values (W = Watt, kW = Kilowatt)",
+              "reduced_factor": "Factor applied to consumption during reduced tariff periods (0.01–1.0, default 0.5)"
+            }
+          }
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Peak Monitor",
+        "description": "Update power tariff configuration",
+        "data": {
+          "name": "Name"
+        },
+        "sections": {
+          "basic_setup_section": {
+            "name": "Basic setup",
+            "data": {
+              "consumption_sensor": "Consumption Sensor",
+              "number_of_peaks": "Number of Peaks to Track",
+              "only_one_peak_per_day": "Only count one peak per day",
+              "price_per_kw": "Price per kWh/h (SEK)",
+              "fixed_monthly_fee": "Fixed Monthly Fee (SEK)",
+              "active_months": "Active Months",
+              "sensor_resets_every_hour": "Sensor resets every hour"
+            },
+            "data_description": {
+              "consumption_sensor": "Select the sensor that measures hourly power consumption",
+              "number_of_peaks": "How many monthly peaks to track for tariff calculation",
+              "only_one_peak_per_day": "When enabled, only the highest reading per day is recorded as a peak",
+              "price_per_kw": "Price per kW used for cost calculations",
+              "fixed_monthly_fee": "Fixed monthly network fee added to cost calculations",
+              "active_months": "Months during which the tariff is active",
+              "sensor_resets_every_hour": "Enable if your consumption sensor resets to 0 every hour. Disable if it is cumulative"
+            }
+          },
+          "weekdays_section": {
+            "name": "Weekdays",
+            "data": {
+              "active_start_hour": "Start Hour",
+              "active_end_hour": "End Hour"
+            },
+            "data_description": {
+              "active_start_hour": "Hour when tariff monitoring starts on weekdays (0–23)",
+              "active_end_hour": "Hour when tariff monitoring ends on weekdays (0–23). Same as start = 24-hour monitoring"
+            }
+          },
+          "weekends_section": {
+            "name": "Weekends",
+            "data": {
+              "weekend_behavior": "Weekend Behaviour",
+              "weekend_start_hour": "Weekend Start Hour",
+              "weekend_end_hour": "Weekend End Hour"
+            },
+            "data_description": {
+              "weekend_behavior": "How the tariff behaves on Saturdays and Sundays",
+              "weekend_start_hour": "Hour when weekend tariff behaviour starts (default 6). Same as end = full day",
+              "weekend_end_hour": "Hour when weekend tariff behaviour ends (default 21). Same as start = full day"
+            }
+          },
+          "holidays_section": {
+            "name": "Holidays",
+            "data": {
+              "holiday_behavior": "Holiday Behaviour",
+              "holidays": "Define Holidays"
+            },
+            "data_description": {
+              "holiday_behavior": "How the tariff behaves on holidays",
+              "holidays": "Select which holidays and holiday evenings should trigger the holiday behaviour"
+            }
+          },
+          "reduced_section": {
+            "name": "Periodic Reduced Tariff",
+            "data": {
+              "daily_reduced_tariff_enabled": "Enable Daily Reduced Tariff",
+              "reduced_start_hour": "Reduced Period Start Hour",
+              "reduced_end_hour": "Reduced Period End Hour"
+            },
+            "data_description": {
+              "daily_reduced_tariff_enabled": "Enable a daily period with reduced tariff weighting",
+              "reduced_start_hour": "Start of the reduced tariff period",
+              "reduced_end_hour": "End of the reduced tariff period"
+            }
+          },
+          "advanced_section": {
+            "name": "Advanced",
+            "data": {
+              "estimation_sensor": "Estimation Sensor (optional)",
+              "external_reduced_sensor": "External Reduce Sensor (optional)",
+              "external_mute_sensor": "External Mute Sensor (optional)",
+              "reset_value": "Reset Value",
+              "output_unit": "Output Value",
+              "reduced_factor": "Reduced Tariff Multiplication Factor"
+            },
+            "data_description": {
+              "estimation_sensor": "Optional: External sensor for consumption estimation. Leave empty to use built-in estimation",
+              "external_reduced_sensor": "Optional binary sensor. When ON, activates reduced tariff mode",
+              "external_mute_sensor": "Optional binary sensor. When ON, mutes the tariff completely",
+              "reset_value": "Value the sensor resets to at the start of each month",
+              "output_unit": "Unit used for output sensor values (W = Watt, kW = Kilowatt)",
+              "reduced_factor": "Factor applied to consumption during reduced tariff periods (0.01–1.0, default 0.5)"
+            }
+          }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Peak Monitor Options",
+        "sections": {
+          "basic_setup_section": {
+            "name": "Basic setup",
+            "data": {
+              "consumption_sensor": "Consumption Sensor",
+              "number_of_peaks": "Number of Peaks to Track",
+              "only_one_peak_per_day": "Only count one peak per day",
+              "price_per_kw": "Price per kWh/h (SEK)",
+              "fixed_monthly_fee": "Fixed Monthly Fee (SEK)",
+              "active_months": "Active Months",
+              "sensor_resets_every_hour": "Sensor resets every hour"
+            },
+            "data_description": {
+              "consumption_sensor": "Select the sensor that measures hourly power consumption",
+              "number_of_peaks": "How many monthly peaks to track for tariff calculation",
+              "only_one_peak_per_day": "When enabled, only the highest reading per day is recorded as a peak",
+              "price_per_kw": "Price per kW used for cost calculations",
+              "fixed_monthly_fee": "Fixed monthly network fee added to cost calculations",
+              "active_months": "Months during which the tariff is active",
+              "sensor_resets_every_hour": "Enable if your consumption sensor resets to 0 every hour. Disable if it is cumulative"
+            }
+          },
+          "weekdays_section": {
+            "name": "Weekdays",
+            "data": {
+              "active_start_hour": "Start Hour",
+              "active_end_hour": "End Hour"
+            },
+            "data_description": {
+              "active_start_hour": "Hour when tariff monitoring starts on weekdays (0–23)",
+              "active_end_hour": "Hour when tariff monitoring ends on weekdays (0–23). Same as start = 24-hour monitoring"
+            }
+          },
+          "weekends_section": {
+            "name": "Weekends",
+            "data": {
+              "weekend_behavior": "Weekend Behaviour",
+              "weekend_start_hour": "Weekend Start Hour",
+              "weekend_end_hour": "Weekend End Hour"
+            },
+            "data_description": {
+              "weekend_behavior": "How the tariff behaves on Saturdays and Sundays",
+              "weekend_start_hour": "Hour when weekend tariff behaviour starts (default 6). Same as end = full day",
+              "weekend_end_hour": "Hour when weekend tariff behaviour ends (default 21). Same as start = full day"
+            }
+          },
+          "holidays_section": {
+            "name": "Holidays",
+            "data": {
+              "holiday_behavior": "Holiday Behaviour",
+              "holidays": "Define Holidays"
+            },
+            "data_description": {
+              "holiday_behavior": "How the tariff behaves on holidays",
+              "holidays": "Select which holidays and holiday evenings should trigger the holiday behaviour"
+            }
+          },
+          "reduced_section": {
+            "name": "Periodic Reduced Tariff",
+            "data": {
+              "daily_reduced_tariff_enabled": "Enable Daily Reduced Tariff",
+              "reduced_start_hour": "Reduced Period Start Hour",
+              "reduced_end_hour": "Reduced Period End Hour"
+            },
+            "data_description": {
+              "daily_reduced_tariff_enabled": "Enable a daily period with reduced tariff weighting",
+              "reduced_start_hour": "Start of the reduced tariff period",
+              "reduced_end_hour": "End of the reduced tariff period"
+            }
+          },
+          "advanced_section": {
+            "name": "Advanced",
+            "data": {
+              "estimation_sensor": "Estimation Sensor (optional)",
+              "external_reduced_sensor": "External Reduce Sensor (optional)",
+              "external_mute_sensor": "External Mute Sensor (optional)",
+              "reset_value": "Reset Value",
+              "output_unit": "Output Value",
+              "reduced_factor": "Reduced Tariff Multiplication Factor"
+            },
+            "data_description": {
+              "estimation_sensor": "Optional: External sensor for consumption estimation. Leave empty to use built-in estimation",
+              "external_reduced_sensor": "Optional binary sensor. When ON, activates reduced tariff mode",
+              "external_mute_sensor": "Optional binary sensor. When ON, mutes the tariff completely",
+              "reset_value": "Value the sensor resets to at the start of each month",
+              "output_unit": "Unit used for output sensor values (W = Watt, kW = Kilowatt)",
+              "reduced_factor": "Factor applied to consumption during reduced tariff periods (0.01–1.0, default 0.5)"
+            }
+          }
+        }
+      }
+    }
+  },
+  "selector": {
+    "months": {
+      "options": {
+        "1": "January",
+        "2": "February",
+        "3": "March",
+        "4": "April",
+        "5": "May",
+        "6": "June",
+        "7": "July",
+        "8": "August",
+        "9": "September",
+        "10": "October",
+        "11": "November",
+        "12": "December"
+      }
+    },
+    "holidays": {
+      "options": {
+        "official_holidays": "Official holidays (red days)",
+        "epiphany_eve": "Epiphany Eve (Jan 5)",
+        "easter_eve": "Easter Eve",
+        "midsummer_eve": "Midsummer Eve",
+        "christmas_eve": "Christmas Eve (Dec 24)",
+        "new_years_eve": "New Year's Eve (Dec 31)"
+      }
+    },
+    "holiday_behavior": {
+      "options": {
+        "no_tariff": "No tariff",
+        "reduced_tariff": "Reduced tariff"
+      }
+    },
+    "weekend_behavior": {
+      "options": {
+        "no_tariff": "No tariff",
+        "reduced_tariff": "Reduced tariff",
+        "full_tariff": "Full tariff"
+      }
+    },
+    "input_unit": {
+      "options": {
+        "Wh": "Wh",
+        "kWh": "kWh"
+      }
+    },
+    "output_unit": {
+      "options": {
+        "W": "W (Watt)",
+        "kW": "kW (Kilowatt)"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "target": {
+        "name": "Target"
+      },
+      "relative_to_target": {
+        "name": "Estimation Relative to Target"
+      },
+      "percentage_of_target": {
+        "name": "Estimation Percentage of Target"
+      },
+      "daily_peak": {
+        "name": "Daily Peak"
+      },
+      "status": {
+        "name": "Status"
+      },
+      "running_peak_1": {
+        "name": "Running Peak 1"
+      },
+      "running_peak_2": {
+        "name": "Running Peak 2"
+      },
+      "running_peak_3": {
+        "name": "Running Peak 3"
+      },
+      "running_peak_4": {
+        "name": "Running Peak 4"
+      },
+      "running_peak_5": {
+        "name": "Running Peak 5"
+      },
+      "running_peak_6": {
+        "name": "Running Peak 6"
+      },
+      "running_peak_7": {
+        "name": "Running Peak 7"
+      },
+      "running_peak_8": {
+        "name": "Running Peak 8"
+      },
+      "running_peak_9": {
+        "name": "Running Peak 9"
+      },
+      "running_peak_10": {
+        "name": "Running Peak 10"
+      },
+      "running_average": {
+        "name": "Running Average"
+      },
+      "interval_consumption": {
+        "name": "Interval Consumption"
+      },
+      "interval_consumption_estimate": {
+        "name": "Interval Consumption Estimate"
+      },
+      "power_grid_peak_tariff": {
+        "name": "Power Grid Peak Tariff"
+      },
+      "cost_increase_estimate": {
+        "name": "Cost Increase Estimate"
+      }
+    }
+  }
+}
