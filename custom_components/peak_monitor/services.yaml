@@ -1,0 +1,29 @@
+reset_peak:
+  name: Reset Peak
+  description: "Reset peaks for a Peak Monitor instance. Use peak_index to target a specific slot, or omit it to reset everything. Period average and price indicators are recalculated immediately after the reset."
+  fields:
+    config_entry_id:
+      name: Instance
+      description: "The Peak Monitor instance to target. If you have only one instance you can leave this empty and it will apply to all instances."
+      selector:
+        config_entry:
+          integration: peak_monitor
+    peak_index:
+      name: Peak Index
+      description: "Which peak to reset. 0 = daily peak only (and daily sub-peaks in averaging mode). 1, 2, 3 = that monthly peak slot (1 = highest, 2 = second, etc.). Omit = reset ALL monthly peaks AND the daily peak."
+      example: 1
+      selector:
+        number:
+          min: 0
+          max: 10
+          mode: box
+    reset_value:
+      name: Reset Value
+      description: "Value (in W or kW depending on your output unit) to reset the peak to. Cannot be set higher than the current peak value — it is clamped automatically. Defaults to the configured reset value if omitted."
+      example: 500
+      selector:
+        number:
+          min: 0
+          step: 1
+          unit_of_measurement: W
+          mode: box

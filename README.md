@@ -1,10 +1,12 @@
 # Peak Monitor for Home Assistant
 
-[![Version](https://img.shields.io/badge/version-2026.3-blue.svg)](https://github.com/krogell/peak-monitor)
+<p align="left"><img src="docs/images/logo@2x.png" alt="Peak Monitor" width="360"></p>
+
+[![Version](https://img.shields.io/badge/version-2026.4.0-blue.svg)](https://github.com/krogell/peak-monitor)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Krogell&repository=peak-monitor&category=integration)
 
-A Home Assistant custom integration for monitoring power tariffs with peak consumption tracking. Originally designed for Swedish power tariff systems (effekttariff), but can be adapted for use in other countries if their electricity pricing model includes peak-based tariffs or if only some of the functionality is of interest. Note that some features (such as Swedish holiday detection) will not work perfectly for non-Swedish users, but can instead be configured with external sensors.
+A Home Assistant custom integration for monitoring power tariffs with peak consumption tracking. Primarly designed for Swedish power tariff systems (effekttariff), but can be adapted for use in other countries if their electricity pricing model includes peak-based tariffs or if only some of the functionality is of interest. Note that some features (such as Swedish holiday detection) will not work perfectly for non-Swedish users, but can instead be configured with external sensors.
 
 ## Om integrationen (Svenska)
 
@@ -22,13 +24,16 @@ Peak Monitor är en integration för Home Assistant som hjälper dig övervaka o
 ## Key Features
 
 - 📊 Track hourly consumption peaks in real-time
-- 🎯 Get a target consumption that won't increase monthly cost
-- 💰 Calculate monthly tariff costs
-- ⚡ Smart estimation (internal or external sensor)
-- 🌙 Reduced tariff support (night hours)
-- 🎄 Swedish holiday detection  
-- 🔧 Complete UI configuration
-- 🔕 Support for external muting sensor
+- 🎯 Get a target consumption level that won't increase your monthly cost
+- 💰 Calculate estimated monthly tariff cost in real currency
+- 💸 See real-time cost impact of an ongoing high-consumption event
+- ⚡ Smart interval estimation — internal or external sensor
+- 🏠 Supports a variety of tariff models - more are being development
+- 🌙 Reduced tariff support for night hours and weekends
+- 🎄 Swedish public holiday detection
+- 🔧 Fully UI-configurable — no YAML required
+- 🔕 External mute sensor support
+- 🤖 Automation-ready — rich sensor set covers everything needed to shed load, pause chargers, or send alerts before a peak locks in
 
 ## ⚠️ Limitations
 
@@ -79,13 +84,15 @@ To edit configuration later:
 
 The integration creates several sensors to help you monitor and optimize your power consumption:
 
-- **Running Average** - Your current tariff (average of top peaks)
-- **Target** - Stay below this to avoid increasing your tariff
-- **Percentage** - How close you are to the target (aim for <100%)
-- **Status** - Whether tariff is active, reduced, or inactive
+- **Period Average** — Your current tariff level (average of your top N monthly peaks)
+- **Target** — Stay below this to avoid increasing your monthly fee
+- **Target Headroom** — How much room remains below target (positive = safe, negative = over target)
+- **Status** — Whether tariff is active, reduced, or inactive
+- **Period Cost** — Estimated monthly capacity fee in your currency *(when price is configured)*
+- **Estimated cost increase** — What extra cost will be, if current consumption continues *(when price is configured)*
 - And more...
 
-See the [Sensor Reference](docs/REFERENCE.md) for complete details on all sensors.
+See the [Sensor Reference](docs/REFERENCE.md) for complete details on all sensors, their visibility, and attributes.
 
 ## License
 

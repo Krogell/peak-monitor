@@ -132,46 +132,41 @@ def calculate_internal_estimation(
     consumption_samples: list[tuple[datetime, float]],
     current_time: datetime,
     previous_hour_rate: float | None = None,
+    interval_minutes: int = 60,
 ) -> float:
-    """Calculate estimated hourly consumption using power-based calculation with smooth blending.
-    
-    Formula: E_est(t) = E(t) + P_avg(t) × (60 - t) / 60
-    
-    For first 5 minutes (300 seconds): Continuous smooth blending with 5-minute rolling average
-    
-    Blending algorithm:
-    - Weight for current algorithm = seconds_since_hour_change / 3
-    - Weight for 5-minute average = 100 - (seconds_since_hour_change / 3)
-    - 5-minute average uses: last N minutes of previous hour + M minutes of current hour
-      where N + M = 5 minutes
-    
-    Example at 120 seconds (2 minutes):
-    - Current weight = 120/3 = 40%
-    - 5-min avg weight = 100-40 = 60%
-    - 5-min window = last 3 min of prev hour + 2 min of current hour
-    
+    """Calculate estimated consumption for the current interval.
+
+    Works for any interval length (6, 12, 15, 20, 30, 60, 120 min).
+    Time is measured from the start of the current interval, not the clock hour.
+
+    Formula: E_est(t) = E(t) + P_avg(t) × (interval - t) / 60
+
+    Where:
+    - E(t) = accumulated energy so far this interval (Wh)
+    - P_avg(t) = mean instantaneous power over recent samples (W)
+    - t = minutes elapsed since interval start
+    - interval = configured interval length in minutes
+
     Big Drop Filter:
     - Filters out samples before a consumption drop >= 5 kW (5000 W)
     - This prevents misleading high estimates when large loads turn off
-    - Example: If consumption drops from 6000W to 1000W, samples before the drop are excluded
-    
-    Where:
-    - E(t) = accumulated energy so far this hour (Wh)
-    - P_avg(t) = mean instantaneous power over recent samples (W)
-    - t = minutes elapsed in current hour
-    
+
+    Startup blending (first 5 min of interval): smoothly transitions from
+    previous-interval rate to current samples to avoid a jarring jump.
+
     Args:
-        consumption_samples: List of (timestamp, cumulative_consumption_this_hour) tuples
+        consumption_samples: List of (timestamp, cumulative_consumption_this_interval) tuples
         current_time: Current datetime
-        previous_hour_rate: Rate in Wh/second from previous hour (for 5-min average)
-        
+        previous_hour_rate: Rate in Wh/second from previous interval (for startup blending)
+        interval_minutes: Configured interval length in minutes (default 60)
+
     Returns:
-        Estimated consumption for the full hour (Wh)
+        Estimated consumption for the full interval (Wh)
     """
     if not consumption_samples:
-        # No data - use previous hour if available
+        # No data — project previous rate over this interval
         if previous_hour_rate is not None and previous_hour_rate > 0:
-            return previous_hour_rate * 3600.0
+            return previous_hour_rate * (interval_minutes * 60)
         return 0.0
     
     # Filter out samples before big consumption drops (>= 5 kW)
@@ -210,29 +205,38 @@ def calculate_internal_estimation(
     # Get current accumulated energy E(t)
     _, E_t = filtered_samples[-1]
     
-    # Calculate seconds elapsed in current hour
-    seconds_elapsed = current_time.minute * 60 + current_time.second
+    # Calculate seconds elapsed since the start of the current interval
+    interval_seconds = interval_minutes * 60
+    if interval_minutes >= 60:
+        # Boundaries at hour multiples — position within a multi-hour window
+        step_hours = interval_minutes // 60
+        interval_start_hour = (current_time.hour // step_hours) * step_hours
+        seconds_elapsed = (current_time.hour - interval_start_hour) * 3600 + current_time.minute * 60 + current_time.second
+    else:
+        # Sub-hour intervals aligned to :00 of each clock hour
+        interval_start_minute = (current_time.minute // interval_minutes) * interval_minutes
+        seconds_elapsed = (current_time.minute - interval_start_minute) * 60 + current_time.second
     
-    # If we're at the very start of the hour, use previous hour rate
+    # If we're at the very start of the interval, use previous rate projection
     if seconds_elapsed < 1:
         if previous_hour_rate is not None and previous_hour_rate > 0:
-            return previous_hour_rate * 3600.0
+            return previous_hour_rate * interval_seconds
         return max(0.0, E_t)
     
-    # Calculate minutes elapsed
-    t = current_time.minute + (current_time.second / 60.0)
-    
-    # Calculate remaining minutes
-    remaining_minutes = 60.0 - t
-    
-    # If we're at the end of the hour, no remaining time to estimate
+    # Calculate minutes elapsed since interval start
+    t = seconds_elapsed / 60.0
+
+    # Calculate remaining minutes in this interval
+    remaining_minutes = float(interval_minutes) - t
+
+    # If we're at the end of the interval, no remaining time to estimate
     if remaining_minutes <= 0:
         return max(0.0, E_t)
     
     # Calculate current algorithm estimate
     if len(filtered_samples) < 2:
         # Only one sample - simple projection
-        current_estimate = (E_t / t) * 60.0
+        current_estimate = (E_t / t) * float(interval_minutes) if t > 0 else 0.0
     else:
         # Calculate instantaneous power from consecutive samples
         powers = []
@@ -251,28 +255,49 @@ def calculate_internal_estimation(
             # Couldn't calculate any power values, use simple projection
             current_estimate = (E_t / t) * 60.0
         else:
-            # Calculate mean power
-            P_avg = sum(powers) / len(powers)
-            
-            # Apply formula: E_est(t) = E(t) + P_avg(t) × (60 - t) / 60
+            # High-load step detection: when the most recent power sample represents
+            # a step increase of >= LARGE_STEP_W compared to the sample before it,
+            # weight the recent samples 3× more heavily so the estimate catches up
+            # quickly (e.g. EV charger plugged in mid-interval).
+            # A steady high load (no step) uses the plain mean — it is already
+            # correctly captured by the accumulated E(t) term.
+            LARGE_STEP_W = 3500.0
+            HIGH_LOAD_WEIGHT = 3.0
+
+            large_step_detected = (
+                len(powers) >= 2
+                and (powers[-1] - powers[-2]) >= LARGE_STEP_W
+            )
+
+            if large_step_detected:
+                # Give the last ⌈N/3⌉ samples (post-step readings) 3× weight
+                recent_count = max(1, len(powers) // 3)
+                older = powers[:-recent_count]
+                recent = powers[-recent_count:]
+                total_weight = len(older) * 1.0 + len(recent) * HIGH_LOAD_WEIGHT
+                P_avg = (
+                    sum(older) * 1.0 + sum(recent) * HIGH_LOAD_WEIGHT
+                ) / total_weight
+            else:
+                # No large step — plain mean
+                P_avg = sum(powers) / len(powers)
+
+            # Apply formula: E_est(t) = E(t) + P_avg(t) × remaining_minutes / 60
             current_estimate = E_t + (P_avg * remaining_minutes / 60.0)
     
-    # Continuous smooth blending for first 5 minutes (300 seconds)
-    if seconds_elapsed < 300 and previous_hour_rate is not None and previous_hour_rate > 0:
-        # Calculate blend weights
-        # Current algorithm weight increases from 0% to 100% over 5 minutes
-        weight_current = seconds_elapsed / 3.0  # 0 to 100 over 300 seconds
-        weight_5min_avg = 100.0 - weight_current
-        
-        # Calculate 5-minute rolling average estimate
-        # This uses previous_hour_rate as approximation for the rolling window
-        # In a full implementation, you'd track actual 5-minute consumption window
-        five_min_avg_estimate = previous_hour_rate * 3600.0
-        
-        # Blend the estimates
-        final_estimate = ((weight_5min_avg / 100.0) * five_min_avg_estimate + 
-                         (weight_current / 100.0) * current_estimate)
-        
+    # Startup blending: smooth transition for first 20% of the interval
+    # (capped at 300 s / 5 min so very long intervals don't blend too long).
+    blend_window = min(300, interval_seconds // 5)
+    if seconds_elapsed < blend_window and previous_hour_rate is not None and previous_hour_rate > 0:
+        # Weight for current-samples estimate rises linearly from 0→100%
+        weight_current = (seconds_elapsed / blend_window) * 100.0
+        weight_prev = 100.0 - weight_current
+
+        # Previous-rate projection over this interval length
+        prev_rate_estimate = previous_hour_rate * interval_seconds
+
+        final_estimate = ((weight_prev / 100.0) * prev_rate_estimate +
+                          (weight_current / 100.0) * current_estimate)
         return max(0.0, final_estimate)
     
     return max(0.0, current_estimate)
