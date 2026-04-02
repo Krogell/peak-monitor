@@ -1,546 +1,559 @@
-# Sensor Reference
+# Sensor Reference — Peak Monitor 2026.4.0
 
-This document describes all sensors created by the Peak Monitor integration, what they represent, their units, and when they appear.
+This document describes every sensor created by the Peak Monitor integration: what it shows, when it is created, whether it is enabled by default, and which attributes it exposes.
 
 ## Table of Contents
-- [Core Sensors (Always Visible)](#core-sensors-always-visible)
-- [Optional Sensors](#optional-sensors)
-- [Understanding the Sensors](#understanding-the-sensors)
+
+- [Visibility overview](#visibility-overview)
+- [Core sensors](#core-sensors)
+  - [Period Average](#period-average)
+  - [Target](#target)
+  - [Target Headroom](#target-headroom)
+  - [Status](#status)
+- [Conditional sensors](#conditional-sensors)
+  - [Daily Peak / Daily Peak Average](#daily-peak--daily-peak-average)
+  - [Period Cost](#period-cost)
+  - [Cost Increase Forecast](#cost-increase-forecast)
+  - [Interval Consumption Forecast](#interval-consumption-forecast)
+  - [Interval Consumption](#interval-consumption)
+- [Disabled by default](#disabled-by-default)
+  - [Estimation Percentage of Target](#estimation-percentage-of-target)
+  - [Period Peak N](#period-peak-n)
+- [Averaging mode sensors](#averaging-mode-sensors-daily_peaks_averaged--1)
+  - [Daily Sub-Peak N](#daily-sub-peak-n)
+  - [Immediate Headroom](#immediate-headroom)
+  - [Safe Headroom](#safe-headroom)
+- [Understanding the sensors](#understanding-the-sensors)
 
 ---
 
-## Core Sensors (Always Visible)
+## Visibility overview
 
-These sensors are created for every Peak Monitor installation.
+| Sensor | Always created | Enabled by default | Condition for creation |
+|---|:---:|:---:|---|
+| Period Average | ✓ | ✓ | — |
+| Target | ✓ | ✓ | — |
+| Target Headroom | ✓ | ✓ | — |
+| Status | ✓ | ✓ | — |
+| Daily Peak | — | Yes | Averaging mode is off |
+| Daily Peak Average | — | yes | Averaging mode |
+| Period Cost | — | ✓ | Price per kW > 0 |
+| Cost Increase Forecast | — | ✓ | Price per kW > 0 |
+| Interval Consumption Forecast | — | ✓ | No external estimation sensor |
+| Interval Consumption | — | ✓ | Cumulative sensor, multiple-peaks mode, or power input |
+| Estimation Percentage of Target | ✓ | **No** | — |
+| Period Peak N | ✓ | **No** | — (one per configured peak) |
+| Daily Sub-Peak N | — | **No** | Averaging mode (daily_peaks_averaged > 1) |
+| Immediate Headroom | — | ✓ | Averaging mode |
+| Safe Headroom | — | ✓ | Averaging mode |
 
-### Running Average
-**Entity ID:** `sensor.{name}_running_average`  
-**Unit:** W (Watt)  
-**State Class:** Total Increasing (resets at month boundary = new cycle)  
-**Device Class:** Energy  
-**Description:** The current power tariff calculated as the average of your top N running peaks.
+---
 
-**What it shows:**
-This is your current tariff level - the average power consumption of your highest peak hours this month.
+## Core sensors
 
-**How it's calculated:**
-1. Tracks your top N interval consumptions (where N = "Number of peaks to track")
-2. Calculates the average of these peaks
-3. This average is your tariff base
+These sensors are created for every installation and are enabled by default.
 
-**Example:**
+---
+
+### Period Average
+
+**Entity ID:** `sensor.{name}_period_average`  
+**Unit:** W or kW (matches output unit setting)  
+**State class:** Measurement  
+**Device class:** Power  
+
+Your current tariff level — the average of your top N interval peaks this month. This is the number that determines your monthly capacity fee.
+
+**How it is calculated:**
+
+The integration tracks the N highest interval consumptions for the month. The period average is the mean of those N values. When a new peak exceeds the current lowest tracked peak, the list is updated and the average recalculates immediately.
+
 ```
-Configuration: Track top 3 peaks
-Current month peaks: 5200, 4800, 4500, 3200, 2800 Wh
-
-Running Average = (5200 + 4800 + 4500) / 3 = 4833 Wh
+Tracking top 3 peaks:
+Month peaks: [5200, 4800, 4500]  →  Period Average = 4833 W
+New interval at 4600 W — does not displace 4500, average stays at 4833 W
+New interval at 5400 W — displaces 4500:  [5400, 5200, 4800]  →  average = 5133 W
 ```
 
 **Attributes:**
-- `price`: Cost in SEK (if price per kW configured)
-- `price_unit`: "SEK"
-- `includes_today`: Whether today's peak is included in the average
-- `last_updated`: Timestamp of the last time the running peaks changed
-- `running_peak_1`, `running_peak_2`, etc.: Individual peak values (sorted by descending value, today's daily peak included when applicable)
-- `running_peak_1_is_today`, `running_peak_2_is_today`, etc.: `true` if that peak position belongs to today's daily peak
 
-**Why it matters:**
-This number determines your monthly power grid fee. Lower is better!
-
-![Monthly Average card](./images/card_monthly_average.png)  
-*Entity card showing the current monthly average*
+| Attribute | Description |
+|---|---|
+| `period_peak_1`, `period_peak_2`, … | Individual peak values, highest first |
+| `period_peak_1_is_today`, … | `true` when that slot belongs to today's daily peak |
+| `includes_today` | Whether today's peak is included in the average |
+| `last_updated` | Timestamp of the last peak list change (rounded to minute) |
+| `price` | Current monthly tariff cost in your currency *(only if price per kW is configured)* |
+| `price_unit` | Currency code, e.g. `SEK` |
 
 ---
 
 ### Target
+
 **Entity ID:** `sensor.{name}_target`  
-**Unit:** W (Watt)  
-**State Class:** Measurement  
-**Description:** The threshold consumption for the current hour. Stay below this to avoid increasing your tariff.
+**Unit:** W or kW  
+**State class:** Measurement  
+**Device class:** Power  
 
-**What it shows:**
-The maximum interval consumption you should aim for in the current hour to avoid creating a new monthly peak.
+The recommended consumption ceiling for the current interval. Stay below this to avoid increasing your monthly tariff.
 
-**How it works:**
-- If interval consumption estimate stays below this target, your monthly tariff won't increase
-- If you exceed this target, your consumption becomes a new monthly peak
-- Updates every hour if there is a new hourly peak affecting your bill
+The target is updated at each interval boundary. Its meaning depends on the mode:
 
-**Example:**
+**Standard mode (daily_peaks_averaged = 1):**
+
 ```
-Monthly peaks: [5200, 4800, 4500]
-Current Target: 4500 Wh
+Target = max(daily_peak, lowest_monthly_peak)
+```
 
-If interval consumption estimate:
-- Stays at 4300 Wh → Good! No change to tariff
-- Reaches 4600 Wh → New peak! Replaces 4500 in the list
+**Averaging mode (daily_peaks_averaged = N) — three cases:**
+
+*Case A — no sub-peak qualifies yet:*  
+Target = lowest monthly peak.
+
+*Case B — some sub-peaks qualify, but today's average is still below the monthly floor:*  
+Target = N × lowest_monthly − sum(top N−1 sub-peaks), clamped ≥ smallest sub-peak.
+
+*Case C — today's average already equals or exceeds the floor:*  
+Target = smallest committed sub-peak (the weakest slot, which can still be improved).
+
+```
+Examples (N=3, lowest monthly peak = 1600 W):
+Case A: sub-peaks = [1400, 1200, 1000]  →  Target = 1600
+Case B: sub-peaks = [1800, 1500, 1200]  →  T = 3×1600 − (1800+1500) = 1500
+Case C: sub-peaks = [2200, 1800, 1500], avg = 1833 > 1600  →  Target = 1500
 ```
 
 **Attributes:**
-- `last_updated`: Timestamp of the last time the target value changed
 
-![Target card](./images/card_target.png)  
-*Entity card showing the current target threshold*
-
----
-
-### Estimation Relative to Target
-**Entity ID:** `sensor.{name}_relative`  
-**Unit:** W (Watt)  
-**State Class:** Measurement  
-**Description:** How far above or below the target you currently are.
-
-**What it shows:**
-- **Negative value:** You're below target (good!)
-- **Zero:** You're exactly at target
-- **Positive value:** You're above target (creating a new peak)
-
-**How it's calculated:**
-```
-Relative = Interval Consumption Estimate - Target
-```
-
-**Example:**
-```
-Target: 4500 Wh
-Estimated interval consumption: 4200 Wh
-Relative = 4200 - 4500 = -300 Wh (300 Wh below target ✓)
-
-Target: 4500 Wh
-Estimated interval consumption: 4800 Wh
-Relative = 4800 - 4500 = +300 Wh (300 Wh above target ✗)
-```
-
-**Why it matters:**
-Quick visual indicator of your current status. Negative = safe, Positive = danger!
-
-![Estimation Relative to Target card](./images/card_estimation_relative_to_target.png)  
-*Entity card showing estimation relative to target — negative means safely below, positive means exceeding*
+| Attribute | Description |
+|---|---|
+| `peak_last_updated` | Timestamp of last target recalculation (rounded to minute) |
 
 ---
 
-### Estimation Percentage of Target
-**Entity ID:** `sensor.{name}_percentage`  
-**Unit:** % (Percent)  
-**State Class:** Measurement  
-**Description:** Estimation as a percentage of the target.
+### Target Headroom
 
-**What it shows:**
-How close the estimation is to the target as a percentage.
+**Entity ID:** `sensor.{name}_target_headroom`  
+**Unit:** W or kW  
+**State class:** Measurement  
+**Device class:** Power  
 
-**How it's calculated:**
+How much room remains between your current projected interval consumption and the target — phrased as remaining capacity, consistent with the other headroom sensors.
+
 ```
-Percentage = (Estimated Consumption / Target) × 100
-```
-
-**Example:**
-```
-Target: 4500 Wh
-Estimated: 4200 Wh
-Percentage = (4200 / 4500) × 100 = 93%
-
-Target: 4500 Wh
-Estimated: 4800 Wh
-Percentage = (4800 / 4500) × 100 = 107%
+Target Headroom = Target − Estimated Interval Consumption
 ```
 
-**Why it matters:**
-Easy to understand visual indicator. Aim to stay under 100%!
+**Positive** = below target (safe — headroom to spare). **Negative** = on track to exceed target and form a new peak.
 
-![Estimation Percentage of Target — gauge card](./images/card_gauge.png)  
-*Gauge card showing estimation as a percentage of target (green <90%, amber 90–100%, red >100%)*
+> **Note for users upgrading from 2026.3:** The sign convention is **inverted** compared to the old "Forecast Margin" sensor. Automations that previously triggered `above: 0` (exceeding target) must be updated to trigger `below: 0`.
 
+Becomes unavailable when the input consumption sensor is unavailable.
 
 ---
 
 ### Status
+
 **Entity ID:** `sensor.{name}_status`  
-**Unit:** None (Text state)  
-**Device Class:** Enum  
-**Possible values:** `inactive`, `reduced`, `active`  
-**Description:** Current state of the tariff system.
+**Unit:** — (text)  
+**Device class:** Enum  
+**Possible states:** `inactive` · `reduced` · `active`  
 
-**States:**
-- **inactive:** Tariff is currently off (outside active hours/months, holiday, weekend with "no tariff")
-- **reduced:** Tariff is active but at reduced rate (reduced hours, weekend/holiday with "reduced tariff")
-- **active:** Tariff is fully active and tracking consumption
+Current state of the tariff system.
 
-**Attributes:**
-- `inactive_reason`: Why tariff is inactive (only when state = inactive)
-- `reduced_reason`: Why tariff is reduced (only when state = reduced)
-
-**Possible reasons:**
-- `"external_mute"` – overridden by external mute sensor
-- `"excluded_month"` – current month is not in active months
-- `"holiday"` – today is a holiday or holiday evening
-- `"weekend"` – today is a weekend day
-- `"time_of_day"` – outside the configured active/reduced hours
-
-**Example:**
-```
-Saturday at 14:00, Weekend behavior = "No tariff"
-State: inactive
-Attribute: inactive_reason = "weekend"
-
-Tuesday at 23:00, Reduced hours 22-6
-State: reduced
-Attribute: reduced_reason = "time_of_day"
-
-Tuesday at 14:00, Normal tariff hours
-State: active
-(No reason attributes)
-```
-
-**Why it matters:**
-Helps you understand when your consumption is being monitored. Use for automations!
-
-![Status card](./images/card_status.png)  
-*Entity card showing the current tariff status (Active / Reduced / Inactive)*
-
----
-
-## Optional Sensors
-
-These sensors only appear based on your configuration.
-
-### Daily Peak
-**Entity ID:** `sensor.{name}_daily_peak`  
-**Unit:** W (Watt)  
-**State Class:** Total Increasing (resets at midnight = new cycle)  
-**Device Class:** Energy  
-**When shown:** Only when "Only one peak per day" is enabled  
-**Description:** The highest interval consumption so far today.
-
-**What it shows:**
-The maximum single-interval consumption you've had today during active tariff hours.
-
-**How it works:**
-- Resets to the configured reset value at midnight
-- Updates throughout the day as new interval consumption is recorded
-- This value is committed to running peaks at midnight
-
-**Example:**
-```
-Today's interval consumptions during tariff hours:
-08:00 → 3200 Wh
-12:00 → 4500 Wh (becomes daily peak)
-15:00 → 3800 Wh
-18:00 → 4200 Wh
-
-Daily Peak = 4500 Wh
-```
-
-**Why it matters:**
-Shows your best/worst hour today. This may become one of your running peaks at midnight.
+| State | Meaning |
+|---|---|
+| `active` | Tariff is fully active; consumption is tracked and peaks are updated |
+| `reduced` | Tariff is active at a reduced rate (e.g. night hours, weekend with reduced setting) |
+| `inactive` | Tariff is off; consumption is not counted toward peaks |
 
 **Attributes:**
-- `last_updated`: Timestamp of the last time the daily peak value increased (not when it was recalculated)
+
+| Attribute | When | Description |
+|---|---|---|
+| `inactive_reason` | State = inactive | Why the tariff is off |
+| `reduced_reason` | State = reduced | Why the tariff is reduced |
+
+Possible reason values: `external_mute` · `excluded_month` · `holiday` · `weekend` · `time_of_day`
 
 ---
 
-### Power Grid Peak Tariff
-**Entity ID:** `sensor.{name}_power_grid_peak_tariff`  
-**Unit:** SEK (Swedish Krona)  
-**State Class:** Total  
-**Device Class:** Monetary  
-**When shown:** Only when "Price per kW" is configured (> 0)  
-**Description:** Estimated total monthly power grid fee.
+## Conditional sensors
 
-**What it shows:**
-Your estimated monthly cost for power grid fees based on current tariff and fixed fee.
-
-**How it's calculated:**
-```
-Fee = Fixed Monthly Fee + (Price per kW × Monthly Average / 1000)
-```
-
-**Example:**
-```
-Running Average: 4833 Wh = 4.833 kW
-Price per kW: 47.5 SEK
-Fixed Fee: 522 SEK
-
-Fee = 522 + (47.5 × 4.833) = 522 + 229.57 = 751.57 SEK
-```
-
-**Why it matters:**
-See your estimated grid fee cost in real money terms!
-
-*View: Energy dashboard cost section or entity card with currency*
+These sensors are only created when specific configuration options are active.
 
 ---
 
-### Cost Increase Estimate
-**Entity ID:** `sensor.{name}_estimated_cost_increase_estimate`  
-**Unit:** SEK (Swedish Krona)  
-**State Class:** Measurement  
-**State Class:** Measurement  
-**Device Class:** None (real-time delta, can be zero or vary freely)  
-**Description:** Real-time estimate of how much your monthly bill would increase if current hour becomes a new peak.
+### Daily Peak / Daily Peak Average
 
-**What it shows:**
-If you're currently above target, this shows how much extra you'll pay monthly if this hour ends as a peak.
+**Entity ID:** `sensor.{name}_daily_peak` (standard) or `sensor.{name}_daily_peak_average` (averaging mode)  
+**Unit:** W or kW  
+**State class:** Measurement  
+**Device class:** Power  
+**Created when:** *Only one peak per day* is enabled  
+**Enabled by default:** No — must be enabled manually in the entity registry  
 
-**How it's calculated:**
-Only shows a value when current estimated consumption > target.
+Today's peak value that will be committed to the monthly peaks list at midnight.
 
-```
-If above target:
-  New Average = average including current hour as new peak
-  Old Average = current monthly average
-  Cost Increase = (New Average - Old Average) / 1000 × Price per kW
-```
+In standard mode this is the single highest interval reading seen today during active tariff hours. In averaging mode (`daily_peaks_averaged > 1`) this is the **average of the N highest intra-day interval readings** committed so far.
 
-**Example:**
-```
-Current peaks: [5200, 4800, 4500]
-Current average: 4833 Wh
-Estimated interval consumption: 5500 Wh (new peak!)
+**Attributes:**
 
-New peaks would be: [5500, 5200, 4800]
-New average: 5167 Wh
-
-Cost Increase = (5167 - 4833) / 1000 × 47.5 = 0.334 × 47.5 = 15.87 SEK
-```
-
-**Why it matters:**
-See in real-time how much that electric car charging or oven use will cost you monthly!
-
-*View: Lovelace entity card during a high-consumption event showing cost impact*
+| Attribute | Description |
+|---|---|
+| `peak_last_updated` | Timestamp when the peak last changed (rounded to minute) |
+| `averaging_model` | e.g. `"avg of 2 highest peaks per day"` *(averaging mode only)* |
+| `sub_peak_1`, `sub_peak_2`, … | Individual sub-peak values *(averaging mode only)* |
 
 ---
 
-### Internal Estimation
-**Entity ID:** `sensor.{name}_interval_consumption_estimate`  
-**Unit:** W (Watt)  
-**State Class:** Measurement  
-**When shown:** Only when NO external estimation sensor is configured  
-**Description:** Built-in linear estimation of total interval consumption.
+### Period Cost
 
-**What it shows:**
-Estimated total consumption for the current hour based on current rate.
+**Entity ID:** `sensor.{name}_period_cost`  
+**Unit:** Your configured currency (e.g. SEK)  
+**State class:** Total  
+**Device class:** Monetary  
+**Created when:** *Price per kW* > 0  
 
-**How it's calculated:**
+Estimated total monthly capacity fee based on the current period average and your configured pricing.
+
 ```
-Minutes elapsed in hour: M
-Current consumption: C
-Estimated total = C × (60 / M)
-```
+Period Cost = Fixed Monthly Fee + (Price per kW × Period Average in kW)
 
-**Example:**
-```
-Current time: 14:23 (23 minutes into hour)
-Consumption so far: 1800 Wh
-
-Estimated total = 1800 × (60 / 23) = 1800 × 2.6 = 4696 Wh
+Example:
+Period Average = 4833 W = 4.833 kW
+Price per kW    = 47.5 SEK
+Fixed fee       = 522 SEK
+Period Cost     = 522 + (47.5 × 4.833) = 751.57 SEK
 ```
 
-**Why it matters:**
-Gives you a real-time projection of where you're headed. Used for all the target/relative calculations.
+**Attributes:**
+
+| Attribute | Description |
+|---|---|
+| `includes_today` | Whether today's peak is included in the calculation |
+| `peak_last_updated` | Timestamp of the last peak change that affected this value (rounded to minute) |
+
+---
+
+### Cost Increase Forecast
+
+**Entity ID:** `sensor.{name}_cost_increase_forecast`  
+**Unit:** Your configured currency (e.g. SEK)  
+**State class:** Measurement  
+**Device class:** Monetary  
+**Created when:** *Price per kW* > 0  
+
+Real-time estimate of how much your monthly bill would increase if the current interval ends as a new peak. Shows 0 when you are at or below target.
+
+```
+If estimated consumption > target:
+  New peaks list = current peaks updated with estimated consumption
+  Cost Increase = (New Average − Old Average) / 1000 × Price per kW
+
+Example:
+Current peaks: [5200, 4800, 4500], average = 4833 W
+Estimated this interval: 5500 W
+New peaks: [5500, 5200, 4800], new average = 5167 W
+Increase = (5167 − 4833) / 1000 × 47.5 = 15.87 SEK/month
+```
+
+---
+
+### Interval Consumption Forecast
+
+**Entity ID:** `sensor.{name}_interval_consumption_forecast`  
+**Unit:** W or kW  
+**State class:** Measurement  
+**Device class:** Power  
+**Created when:** No external estimation sensor is configured  
+
+Built-in projection of total interval consumption based on consumption so far and time elapsed. This value feeds the Target, Target Headroom, Percentage, and cost sensors.
+
+The estimate blends the current rate of consumption with the previous interval's rate, becoming progressively more stable as the interval progresses.
 
 ---
 
 ### Interval Consumption
+
 **Entity ID:** `sensor.{name}_interval_consumption`  
-**Unit:** W (Watt)  
-**State Class:** Total Increasing (resets every hour = new cycle)  
-**Device Class:** Energy  
-**When shown:** Only when "Sensor resets every hour" is DISABLED (cumulative sensor mode)
-**Description:** Calculated interval consumption from a cumulative sensor.
+**Unit:** Wh or kWh  
+**State class:** Total increasing (resets each interval)  
+**Created when:** Input sensor is cumulative, multiple-peaks-per-day mode is active, or input is a power sensor (W/kW)  
 
-**What it shows:**
-The energy consumed during the current hour, calculated from a cumulative sensor.
+Consumption accumulated during the current interval, derived from your input sensor.
 
-**How it's calculated:**
-```
-Hourly = Current Cumulative Value - Value at Hour Start
-```
-
-**Example:**
-```
-12:00 - Cumulative: 45200 Wh (hour starts)
-12:30 - Cumulative: 45520 Wh
-Interval Consumption = 45520 - 45200 = 320 Wh (so far this hour)
-```
-
-**Why it matters:**
-Converts your cumulative meter into hourly values that the integration can use.
+- Cumulative energy sensor: `current reading − reading at interval start`  
+- Power sensor (W/kW): trapezoidal integral of instantaneous power readings
 
 ---
 
-### Running Peak 1, 2, 3, etc.
-**Entity ID:** `sensor.{name}_running_peak_1`, `sensor.{name}_running_peak_2`, etc.  
-**Unit:** W (Watt)  
-**State Class:** Total Increasing (resets at month boundary = new cycle)  
-**Device Class:** Energy  
-**When shown:** Always created (one for each peak tracked), but disabled. User must enable them manually 
-**Default:** Hidden in entity registry  
-**Description:** Individual monthly peak values.
+## Disabled by default
 
-**What they show:**
-Each sensor shows one of your monthly peak consumption hours.
+These sensors are created for every installation but are hidden in the entity registry. Enable them individually in Settings → Devices & Services → Peak Monitor → Entities.
 
-**Example:**
+---
+
+### Estimation Percentage of Target
+
+**Entity ID:** `sensor.{name}_target_usage_percentage`  
+**Unit:** %  
+**State class:** Measurement  
+**Enabled by default:** No  
+
+Estimated interval consumption as a percentage of target. Below 100% is safe; above 100% means a new peak is forming. Disabled per default as it is a hard sensor to use for automation. 90 % can give vastly different implication early and late in the period.
+
 ```
-Tracking 3 peaks:
-running_peak_1: 5200 Wh (highest)
-running_peak_2: 4800 Wh (second)
-running_peak_3: 4500 Wh (third)
-
-Average = (5200 + 4800 + 4500) / 3 = 4833 Wh
+Percentage = (Estimated Consumption / Target) × 100
 ```
 
-**Why they're hidden:**
-The Running Average sensor shows the important number (the average). These individual peaks are available as attributes on that sensor, so separate sensors are usually not needed.
+Useful for gauge cards. Becomes unavailable when the input sensor is unavailable.
+
+---
+
+### Period Peak N
+
+**Entity ID:** `sensor.{name}_period_peak_1`, `_period_peak_2`, …  
+**Unit:** W or kW  
+**State class:** Measurement  
+**Device class:** Power  
+**Enabled by default:** No (one per configured peak, all hidden)  
+
+Individual monthly peak values ranked highest to lowest. The same information is available as attributes on the Period Average sensor and most significant information is accessible with target and other sensors, so these sensors are disabled by default.
+
+Enable when you want to graph individual peaks, build per-peak automations, or compare slots over time.
 
 **Attributes:**
-- `last_updated`: Timestamp of the last time the running peaks list changed
 
-**When to enable:**
-- If you want to track individual peaks in graphs
-- If you want separate automations for each peak
-- To see which specific hours were your peaks
+| Attribute | Description |
+|---|---|
+| `peak_last_updated` | Timestamp of the last change to the peaks list (rounded to minute) |
 
 ---
 
-## Understanding the Sensors
+## Averaging mode sensors (daily_peaks_averaged > 1)
 
-### The Flow of Information
-
-```
-┌─────────────────────────┐
-│   Consumption Sensor    │  (Your energy meter)
-│   sensor.power_meter    │
-└──────────┬──────────────┘
-           │
-           ↓
-┌─────────────────────────┐
-│  Interval Consumption     │  (Calculated if cumulative)
-│  Internal tracking      │
-└──────────┬──────────────┘
-           │
-           ↓
-┌─────────────────────────┐
-│  Internal Estimation    │  (Projects end-of-hour)
-│  OR External Sensor     │
-└──────────┬──────────────┘
-           │
-           ↓
-┌─────────────────────────┐
-│     Daily Peak          │  (Max hour today)
-│   Updated hourly        │
-└──────────┬──────────────┘
-           │ (At midnight)
-           ↓
-┌─────────────────────────┐
-│   Running Peaks         │  (Top N hours)
-│   running_peak_1..N     │
-└──────────┬──────────────┘
-           │
-           ↓
-┌─────────────────────────┐
-│   Monthly Average       │  (Your tariff)
-│   Used for all costs    │
-└─────────────────────────┘
-```
-
-### Real-Time Monitoring Sensors
-
-These update continuously during the hour:
-- **Internal Estimation** / External estimation sensor
-- **Target**
-- **Estimation Relative to Target**
-- **Estimation Percentage of Target**
-- **Cost Increase Estimate**
-
-### Daily Update Sensors
-
-These update at midnight:
-- **Daily Peak** (resets)
-- **Running Peaks** (one new peak added)
-- **Running Average** (recalculated)
-
-### Status Sensor
-
-Updates based on time, calendar, and configuration:
-- Changes state based on hour, day, month, holidays
-- Updates attributes when state changes
+Created only when *Daily Peak Averaging* is set to 2 or more. All are enabled by default when present.
 
 ---
 
-## Visualization Examples
+### Daily Sub-Peak N
 
-### Recommended Lovelace Cards
+**Entity ID:** `sensor.{name}_daily_sub_peak_1`, `_daily_sub_peak_2`, …  
+**Unit:** W or kW  
+**State class:** Measurement  
+**Device class:** Power  
+**Enabled by default:** No
 
-#### Current Status Dashboard
-```yaml
-type: entities
-entities:
-  - entity: sensor.peak_monitor_status
-  - entity: sensor.peak_monitor_percentage
-  - entity: sensor.peak_monitor_relative
-  - entity: sensor.peak_monitor_target
+One sensor per sub-peak slot. Shows the individual interval readings that contribute to today's averaged daily peak, ranked highest to lowest. Updated at each interval boundary. Disabled per default, with same motivation as for Period Peak N sensors.
+
+```
+Example (daily_peaks_averaged = 2):
+08:00–09:00 → 5000 W  →  daily_sub_peak_1 = 5000
+14:00–15:00 → 4200 W  →  daily_sub_peak_2 = 4200
+Daily Peak Average = (5000 + 4200) / 2 = 4600 W
 ```
 
-![Current status dashboard](./images/card_current_status_dashboard.png)
+**Attributes:**
 
-#### Power Gauge
-```yaml
-type: gauge
-entity: sensor.peak_monitor_percentage
-min: 0
-max: 150
-severity:
-  green: 0
-  yellow: 90
-  red: 100
-```
-
-![Gauge card](./images/card_gauge.png)
-
-#### Monthly Cost Card
-```yaml
-type: entities
-entities:
-  - entity: sensor.peak_monitor_running_average
-  - entity: sensor.peak_monitor_monthly_power_grid_fee
-  - entity: sensor.peak_monitor_daily_peak
-```
-
-![Cost card](./images/card_cost.png)
-
-#### Power Grid Peak Tariff Card
-```yaml
-type: entity
-entity: sensor.peak_monitor_monthly_power_grid_fee
-```
-
-![Power Grid Peak Tariff card](./images/card_monthly_cost.png)  
-*Entity card showing the current estimated monthly power grid fee in SEK*
-
-#### History Graph
-```yaml
-type: history-graph
-entities:
-  - entity: sensor.peak_monitor_running_average
-hours_to_show: 168
-```
-
-![Weekly history graph](./images/card_weekly_history.png)  
-*History graph showing the monthly average stepping up each time a new peak is committed during the week*
+| Attribute | Description |
+|---|---|
+| `peak_last_updated` | Timestamp of the last sub-peak change (rounded to minute) |
+| `rank` | Position (1 = highest) |
 
 ---
 
-## Using Sensors in Automations
+### Immediate Headroom
 
-### Example: Alert When Approaching Limit
+**Entity ID:** `sensor.{name}_immediate_headroom`  
+**Unit:** W or kW  
+**State class:** Measurement  
+**Device class:** Power  
+**Available when:** Tariff is active and averaging mode is configured
+
+The absolute maximum consumption you can reach this interval without adding any extra cost to your monthly bill.
+
+This is a hard ceiling. **Target** is the recommended operating point that keeps you safe across the whole day. Use Immediate Headroom when you need to know the safe ceiling for a single high-draw event (EV charging, oven, sauna).
+
+> **Warning:** Consuming up to headroom every interval early in the day will rapidly fill all sub-peak slots with large values. Once committed, target drops and there is little room left. Generally aim for Target, not Headroom.
+
+```
+H = N × lowest_period_peak − sum(top N−1 committed sub-peaks)
+H = max(H, smallest_committed_sub_peak)
+
+Example (N=2, lowest monthly peak = 2000 W, sub-peaks = [1800]):
+H = 2×2000 − 1800 = 2200 W
+```
+
+Target is always ≤ Immediate Headroom.
+
+**Attributes:**
+
+| Attribute | Description |
+|---|---|
+| `n_sub_peaks` | Configured N |
+| `lowest_monthly_peak` | Monthly floor in output unit |
+| `sub_peaks` | Committed sub-peak values, highest first |
+| `top_n_minus_1_sum` | Sum of top N−1 sub-peaks |
+
+---
+
+### Safe Headroom
+
+**Entity ID:** `sensor.{name}_safe_headroom`  
+**Unit:** W or kW  
+**State class:** Measurement  
+**Device class:** Power  
+**Available when:** Tariff is active and averaging mode is configured
+
+The guaranteed-safe operating level: the consumption value below which no remaining interval today can worsen any sub-peak slot or increase the monthly average.
+
+```
+Safe Headroom = min(committed daily sub-peaks)
+```
+
+As long as every remaining interval stays below Safe Headroom, the weakest sub-peak slot is not displaced and the monthly average cannot worsen.
+
+Use Safe Headroom in automations that must guarantee they never increase the monthly bill, such as smart EV chargers or hot water heaters. For daily planning use Target; for the hard ceiling use Immediate Headroom; for guaranteed-safe automation use Safe Headroom.
+
+**Attributes:**
+
+| Attribute | Description |
+|---|---|
+| `n_sub_peaks` | Configured N |
+| `sub_peaks` | Committed sub-peak values, highest first |
+| `smallest_sub_peak` | The value used as safe headroom |
+
+---
+
+## Understanding the sensors
+
+### Data flow
+
+```
+┌───────────────────────────────┐
+│  Input sensor                 │
+│  Wh/kWh (energy) or W/kW      │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│  Interval Consumption         │  Wh accumulated this interval
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│  Interval Consumption         │  Projected Wh at end of interval
+│  Forecast / external sensor   │
+└───────────┬───────────────────┘
+            │
+     ┌──────┴────────┐
+     ▼               ▼
+┌──────────┐  ┌─────────────────────────────┐
+│  Target  │  │  Target Headroom            │
+└──────────┘  │  Cost Increase Forecast     │
+              │  Estimation Percentage      │
+              └─────────────────────────────┘
+                │
+                ▼  at interval boundary
+┌───────────────────────────────┐
+│  Daily Peak                   │
+│  (or Daily Sub-Peaks +        │
+│   headroom sensors)           │
+└───────────────┬───────────────┘
+                │  at midnight
+                ▼
+┌───────────────────────────────┐
+│  Period Peaks  (top N)       │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│  Period Average              │
+│  Period Cost                  │
+└───────────────────────────────┘
+```
+
+### Update frequency
+
+| Sensor | Updates when |
+|---|---|
+| Interval Consumption Forecast | Every input sensor update |
+| Target Headroom | Every input sensor update |
+| Estimation Percentage | Every input sensor update |
+| Cost Increase Forecast | Every input sensor update |
+| Target | At each interval boundary |
+| Immediate / Safe Headroom | At each interval boundary |
+| Daily Sub-Peak N | At each interval boundary |
+| Daily Peak | At each interval boundary (when a new high is reached) |
+| Period Average | When a peak is committed (typically midnight) |
+| Period Cost | When Period Average changes |
+| Period Peak N | When Period Average changes |
+| Status | On schedule change (hour, day, holiday, month) |
+
+### Data persistence
+
+The integration stores the following between restarts:
+
+- Monthly peaks list
+- Daily peak (and sub-peaks in averaging mode)
+- Interval consumption accumulated so far *(restored when restarting within the same interval)*
+- Last peak timestamps
+- Cumulative sensor baseline value
+
+Data is stored in `.storage/peak_monitor_data_{entry_id}`.
+
+### When sensors show Unknown or Unavailable
+
+**Unknown:** The integration just started and has not yet processed a sensor reading. Resolves within one interval.
+
+**Unavailable (Target Headroom, Percentage, Cost Increase):** The input consumption sensor is currently unavailable. Check the sensor entity and its integration.
+
+**Target = 0 or unavailable:** Tariff is currently inactive. Check the Status sensor.
+
+---
+
+## Input sensor types
+
+### Energy sensors (Wh / kWh) — recommended
+
+Energy sensors report accumulated consumption. They are more resilient to Home Assistant restarts because the energy value at restart reflects actual consumption even if HA was offline during that period, given data is gathered from an energy meter and not calculated from power sensor.
+
+### Power sensors (W / kW) — usable with caveats
+
+Power sensors report instantaneous draw. The integration integrates readings over time using trapezoidal integration. Accumulated consumption during gaps (HA offline, sensor unavailable) is not counted.
+
+The integration correctly restores accumulated interval consumption across same-interval restarts, but any gap in readings during that interval is lost.
+
+> **Recommendation:** Use an energy sensor whenever possible.
+
+---
+
+## Reset Peak service
+
+**Service:** `peak_monitor.reset_peak`
+
+Manually reset one or all period peaks.
+
+| Parameter | Required | Default | Description |
+|---|:---:|---|---|
+| `peak_index` | No | All peaks | 1-based index of the peak to reset (1 = highest) |
+| `reset_value` | No | Configured reset value | Value to reset to; clamped if higher than the current peak |
+
+Period average and all price indicators recalculate immediately after the call.
+
+---
+
+## Automation examples
+
+### Alert when approaching limit
 
 ```yaml
 automation:
   - alias: "Peak Monitor Warning"
     trigger:
       - platform: numeric_state
-        entity_id: sensor.peak_monitor_percentage
+        entity_id: sensor.peak_monitor_target_usage_percentage
         above: 90
     condition:
       - condition: state
@@ -549,130 +562,47 @@ automation:
     action:
       - service: notify.mobile_app
         data:
-          message: "Power consumption at {{ states('sensor.peak_monitor_percentage') }}% of target!"
+          message: >
+            Power at {{ states('sensor.peak_monitor_target_usage_percentage') | round }}%
+            of target ({{ states('sensor.peak_monitor_target') }} W limit).
 ```
 
-### Example: Stop Charging When Above Target
+### Stop EV charging when above target
 
 ```yaml
 automation:
   - alias: "Stop EV Charging Above Target"
     trigger:
       - platform: numeric_state
-        entity_id: sensor.peak_monitor_relative
-        above: 0
+        entity_id: sensor.peak_monitor_target_headroom
+        below: 0
     condition:
       - condition: state
-        entity_id: switch.ev_charger
-        state: "on"
+        entity_id: sensor.peak_monitor_status
+        state: "active"
     action:
       - service: switch.turn_off
         target:
           entity_id: switch.ev_charger
-      - service: notify.mobile_app
-        data:
-          message: "EV charging stopped - above tariff target"
 ```
 
-### Example: Monthly Cost Report
+### Safe EV charging using Safe Headroom (averaging mode)
 
 ```yaml
 automation:
-  - alias: "Monthly Tariff Report"
+  - alias: "Allow EV charge if safe headroom permits"
     trigger:
-      - platform: time
-        at: "06:00:00"
+      - platform: time_pattern
+        minutes: "/5"
     condition:
-      - condition: template
-        value_template: "{{ now().day == 1 }}"
+      - condition: state
+        entity_id: sensor.peak_monitor_status
+        state: "active"
+      - condition: numeric_state
+        entity_id: sensor.peak_monitor_safe_headroom
+        above: 3500
     action:
-      - service: notify.email
-        data:
-          title: "Monthly Peak Monitor Report"
-          message: >
-            Running Average: {{ states('sensor.peak_monitor_running_average') }} Wh
-            Grid Fee: {{ states('sensor.peak_monitor_monthly_power_grid_fee') }} SEK
-            Peak 1: {{ state_attr('sensor.peak_monitor_running_average', 'running_peak_1') }} Wh
+      - service: switch.turn_on
+        target:
+          entity_id: switch.ev_charger
 ```
-
----
-
-## Sensor States Explained
-
-### When Sensors Show "Unknown" or "Unavailable"
-
-**"Unknown":**
-- Integration just started and doesn't have data yet
-- Usually resolves within one hour
-- Normal during first setup
-
-**"Unavailable":**
-- Consumption sensor is unavailable/not found
-- Check that your consumption sensor is working
-- Check entity ID is correct in configuration
-
-### When Values Are Zero
-
-**Target = 0:**
-- Tariff is currently inactive (check Status sensor)
-- Outside active hours or months
-- Holiday or weekend with "no tariff"
-
-**Estimation Percentage = 0:**
-- No consumption data yet this hour
-- Consumption sensor hasn't updated
-- Normal at the start of each hour
-
-### When Values Seem Wrong
-
-**Very high Running Average:**
-- Check if a one-time event (oven, sauna, charging) created a peak
-- Peaks persist for the entire month
-- Will reset at the start of next month
-
-**Estimation seems off:**
-- Built-in estimation is linear (assumes constant rate)
-- Use external estimation sensor for better accuracy
-- Early in the hour, estimates can be very sensitive to small consumption
-
----
-
-## Technical Details
-
-### Update Frequency
-
-| Sensor | Update Frequency |
-|--------|------------------|
-| Estimation | Every time consumption sensor updates |
-| Target | Every time consumption sensor updates |
-| Relative | Every time consumption sensor updates |
-| Percentage | Every time consumption sensor updates |
-| Status | On state change (hour, day, holiday) |
-| Daily Peak | On consumption increase during active hours |
-| Running Peaks | At midnight (monthly on 1st) |
-| Monthly Average | When running peaks change |
-| Cost sensors | When monthly average changes |
-
-### Data Persistence
-
-The integration stores these values between Home Assistant restarts:
-- Monthly peaks
-- Daily peak
-- Last update timestamps
-- Cumulative consumption tracking
-
-Data is stored in: `.storage/peak_monitor_data_{entry_id}`
-
-### State Class Explained
-
-- **Measurement:** Can go up or down, represents a current level or computed value.
-  - Used for: Target, Relative to Target, Percentage, and Cost Increase Estimate.
-  - These are threshold/prediction/delta values that move freely, so `total_increasing` would be incorrect.
-  - `device_class` is omitted where HA's device class rules would require `total/total_increasing` but the value can decrease. Units are preserved.
-
-- **Total Increasing:** Only increases within a cycle; a drop signals the start of a new cycle (HA handles this automatically).
-  - Used for: **Running Average**, **Running Peak N**, **Daily Peak**, **Interval Consumption**.
-  - *Monthly Average & Running Peak N:* a new peak only enters when it exceeds the current minimum, so each slot and the average are strictly non-decreasing. Monthly reset is a new cycle.
-  - **Power Grid Peak Tariff** uses `total` (the only state class `monetary` device class allows); it non-decreasingly tracks the monthly average within the month.
-  - *Daily Peak:* only increases within the day; midnight reset is a new cycle.
-  - *Interval Consumption:* only increases within the hour; hour-boundary reset is a new cycle.

@@ -17,50 +17,45 @@ This page shows recommended settings for some known Swedish DSOs (distribution s
 
 ## DSO comparison
 
-| Setting | | Ellevio | Göteborg Energi | Vattenfall Eldistribution | Tekniska verken — 5-peak model | Tekniska verken — 2-peak day/night ⚠️ | Jönköping Energi ⚠️ | Umeå Energi | Mälarenergi (Västerås) ⚠️ | Lerum Energi *(from Sep 2026)* |
-|---|---|---|---|---|---|---|---|---|---|---|
-| **Tariff design** | | Avg of top 3 daily peaks. Night 22–06 weighted at 50% every day including weekends. No seasonal restriction. | Avg of top 3 daily peaks. Helgfria vardagar 07–20. Nov–Mar only. Weekends and röda dagar = noll. | Avg of top 5 daily peaks. Helgfria vardagar 07–21. Nov–Mar only. Weekends and röda dagar = noll. | Avg of top 5 hourly peaks per month. Multiple peaks per day allowed. No weekday restriction stated. | Two separate capacity prices: one for daytime (06–23) peaks and one for night-time (23–06) peaks. **Requires two separate Peak Monitor instances.** ⚠️ | **Avg of the two highest peaks per day. This model is currently not supported by Peak Monitor.** ⚠️ | Avg of top 5 daily peaks. Weekdays 07–20, Nov–Mar only. | Two separate capacity prices for daytime and night-time peaks. **Requires two separate Peak Monitor instances.** ⚠️ | Avg of top 3 daily peaks. Helgfria vardagar 06–21. Nov–Mar only. |
-| | | | | | | | | | | |
-| **— Basic Setup —** | | | | | | | | | | |
-| Sensor Resets Every Hour | | Depends on your meter | Depends on your meter | Depends on your meter | Depends on your meter | Depends on your meter | — | Depends on your meter | Depends on your meter | Depends on your meter |
-| Number of Peaks | | `3` | `3` | `5` | `5` | `2` per instance | — | `5` | `2` per instance | `3` |
-| Only One Peak Per Day | | ☑ Yes *(default)* | ☑ Yes *(default)* | ☑ Yes *(default)* | ☐ **No** | ☑ Yes *(default)* | — | ☑ Yes *(default)* | ☑ Yes *(default)* | ☑ Yes *(default)* |
-| Price per kW | | *From your invoice* | *From your invoice* | *From your invoice* | *From your invoice* | *Daytime rate* / *Night rate* | — | *From your invoice* | *Daytime rate* / *Night rate* | *From your invoice* |
-| Fixed Monthly Fee | | *From your invoice* | *From your invoice* | *From your invoice* | *From your invoice* | Split between instances | — | *From your invoice* | Split between instances | *From your invoice* |
-| Active Months | | All *(default)* | `Nov Dec Jan Feb Mar` | `Nov Dec Jan Feb Mar` | All *(default)* | All *(default)* | — | `Nov Dec Jan Feb Mar` | All *(default)* | `Nov Dec Jan Feb Mar` |
-| | | | | | | | | | | |
-| **— Weekdays —** | | | | | | | | | | |
-| Start Hour | | `6` *(default)* | `7` | `7` | `6` *(default)* | `6` (day) / `23` (night) | — | `7` | `6` (day) / `22` (night) | `6` *(default)* |
-| End Hour | | `22` | `20` | `21` | `22` | `23` (day) / `6` (night) | — | `20` | `22` (day) / `6` (night) | `21` |
-| | | | | | | | | | | |
-| **— Weekends —** | | | | | | | | | | |
-| Weekend Behaviour | | **Full tariff** ² | No tariff *(default)* | No tariff *(default)* | Full tariff | No tariff *(default)* | — | No tariff *(default)* | **Full tariff** | No tariff *(default)* |
-| Weekend Start Hour | | `6` *(default)* | — | — | `6` *(default)* | — | — | — | `6` (day) / `22` (night) | — |
-| Weekend End Hour | | `22` | — | — | `22` | — | — | — | `22` (day) / `6` (night) | — |
-| | | | | | | | | | | |
-| **— Holidays —** | | | | | | | | | | |
-| Holiday Behaviour | | No tariff *(default)* | No tariff *(default)* | No tariff *(default)* | No tariff *(default)* | No tariff *(default)* | — | No tariff *(default)* | No tariff *(default)* | No tariff *(default)* |
-| Define Holidays | | *(none)* ³ | Official holidays (röda dagar) ⁴ | Official + trettondagsafton + påskafton + midsommarafton + julafton + nyårsafton | Official holidays | Official holidays | — | Official + julafton + nyårsafton | Official holidays | Official + trettondagsafton + julafton + nyårsafton |
-| | | | | | | | | | | |
-| **— Periodic Reduced Tariff —** | | | | | | | | | | |
-| Enable Daily Reduced Tariff | | ☑ **Yes** | ☐ No *(default)* | ☐ No *(default)* | ☐ No *(default)* | ☐ No *(default)* | — | ☐ No *(default)* | ☐ No *(default)* | ☐ No *(default)* |
-| Also on Weekends | | ☑ **Yes** ⁵ | — | — | — | — | — | — | — | — |
-| Reduced Start Hour | | `22` | — | — | — | — | — | — | — | — |
-| Reduced End Hour | | `6` | — | — | — | — | — | — | — | — |
-| | | | | | | | | | | |
-| **— Advanced —** | | | | | | | | | | |
-| Estimation Sensor | | — | — | — | — | — | — | — | — | — |
-| External Reduce Sensor | | — | — | — | — | — | — | — | — | — |
-| External Mute Sensor | | — | — | — | — | — | — | — | — | — |
-| Reduced Factor | | `0.5` *(default)* ⁶ | — | — | — | — | — | — | — | — |
-| Reset Value | | 500 *(default)* | 500 *(default)* | 500 *(default)* | 500 *(default)* | 500 *(default)* | — | 500 *(default)* | 500 *(default)* | 500 *(default)* |
-| Output Unit | | *Your preference* | *Your preference* | *Your preference* | *Your preference* | *Your preference* | — | *Your preference* | *Your preference* | *Your preference* |
-
----
-
-## ⚠️ Jönköping Energi — not currently supported
-
-Jönköping Energi's model uses the average of the **two highest peaks per day** within each measurement hour. This is a fundamentally different calculation from the single daily-peak model that Peak Monitor implements and is currently not supported. Do not attempt to configure Peak Monitor for Jönköping Energi without first verifying that your specific contract uses a different, supported model.
+| Setting | | Ellevio | Göteborg Energi | Vattenfall Eldistribution | Tekniska verken — 5-peak model | Tekniska verken — 2-peak day/night ⚠️ | Jönköping Energi | Umeå Energi | Mälarenergi (Västerås) ⚠️ |
+|---|---|---|---|---|---|---|---|---|---|
+| **Tariff design** | | Avg of top 3 daily peaks. Night 22–06 weighted at 50% every day including weekends. No seasonal restriction. | Avg of top 3 daily peaks. Helgfria vardagar 07–20. Nov–Mar only. Weekends and röda dagar = noll. | Avg of top 5 daily peaks. Helgfria vardagar 07–21. Nov–Mar only. Weekends and röda dagar = noll. | Avg of top 5 hourly peaks per month. Multiple peaks per day allowed. No weekday restriction stated. | Two separate capacity prices: one for daytime (06–23) peaks and one for night-time (23–06) peaks. **Requires two separate Peak Monitor instances.** ⚠️ | Avg of the **two highest** intra-day peaks, averaged together as the daily value. Helgfria vardagar 07–20. Nov–Mar only. Use *Daily Peak Averaging = 2* in Peak Monitor. | Avg of top 5 daily peaks. Weekdays 07–20, Nov–Mar only. | Two separate capacity prices for daytime and night-time peaks. **Requires two separate Peak Monitor instances.** ⚠️ |
+| | | | | | | | | | |
+| **— Basic Setup —** | | | | | | | | | |
+| Sensor Resets Every Hour | | Depends on your meter | Depends on your meter | Depends on your meter | Depends on your meter | Depends on your meter | Depends on your meter | Depends on your meter | Depends on your meter |
+| Number of Peaks | | `3` | `3` | `5` | `5` | `2` per instance | `3` | `5` | `2` per instance |
+| Only One Peak Per Day | | ☑ Yes *(default)* | ☑ Yes *(default)* | ☑ Yes *(default)* | ☐ **No** | ☑ Yes *(default)* | ☑ Yes *(default)* | ☑ Yes *(default)* | ☑ Yes *(default)* |
+| Daily Peak Averaging | | 1 *(default)* | 1 *(default)* | 1 *(default)* | 1 *(default)* | 1 *(default)* | **`2`** | 1 *(default)* | 1 *(default)* |
+| Price per kW | | *From your invoice* | *From your invoice* | *From your invoice* | *From your invoice* | *Daytime rate* / *Night rate* | *From your invoice* | *From your invoice* | *Daytime rate* / *Night rate* |
+| Fixed Monthly Fee | | *From your invoice* | *From your invoice* | *From your invoice* | *From your invoice* | Split between instances | *From your invoice* | *From your invoice* | Split between instances |
+| Active Months | | All *(default)* | `Nov Dec Jan Feb Mar` | `Nov Dec Jan Feb Mar` | All *(default)* | All *(default)* | `Nov Dec Jan Feb Mar` | `Nov Dec Jan Feb Mar` | All *(default)* |
+| | | | | | | | | | |
+| **— Weekdays —** | | | | | | | | | |
+| Start Hour | | `6` *(default)* | `7` | `7` | `6` *(default)* | `6` (day) / `23` (night) | `7` | `7` | `6` (day) / `22` (night) |
+| End Hour | | `22` | `20` | `21` | `22` | `23` (day) / `6` (night) | `20` | `20` | `22` (day) / `6` (night) |
+| | | | | | | | | | |
+| **— Weekends —** | | | | | | | | | |
+| Weekend Behaviour | | **Full tariff** ² | No tariff *(default)* | No tariff *(default)* | Full tariff | No tariff *(default)* | No tariff *(default)* | No tariff *(default)* | **Full tariff** |
+| Weekend Start Hour | | `6` *(default)* | — | — | `6` *(default)* | — | — | — | `6` (day) / `22` (night) |
+| Weekend End Hour | | `22` | — | — | `22` | — | — | — | `22` (day) / `6` (night) |
+| | | | | | | | | | |
+| **— Holidays —** | | | | | | | | | |
+| Holiday Behaviour | | No tariff *(default)* | No tariff *(default)* | No tariff *(default)* | No tariff *(default)* | No tariff *(default)* | No tariff *(default)* | No tariff *(default)* | No tariff *(default)* |
+| Define Holidays | | *(none)* ³ | Official holidays (röda dagar) ⁴ | Official + trettondagsafton + påskafton + midsommarafton + julafton + nyårsafton | Official holidays | Official holidays | Official holidays | Official + julafton + nyårsafton | Official holidays |
+| | | | | | | | | | |
+| **— Periodic Reduced Tariff —** | | | | | | | | | |
+| Enable Daily Reduced Tariff | | ☑ **Yes** | ☐ No *(default)* | ☐ No *(default)* | ☐ No *(default)* | ☐ No *(default)* | ☐ No *(default)* | ☐ No *(default)* | ☐ No *(default)* |
+| Also on Weekends | | ☑ **Yes** ⁵ | — | — | — | — | — | — | — |
+| Reduced Start Hour | | `22` | — | — | — | — | — | — | — |
+| Reduced End Hour | | `6` | — | — | — | — | — | — | — |
+| | | | | | | | | | |
+| **— Advanced —** | | | | | | | | | |
+| Estimation Sensor | | — | — | — | — | — | — | — | — |
+| External Reduce Sensor | | — | — | — | — | — | — | — | — |
+| External Mute Sensor | | — | — | — | — | — | — | — | — |
+| Reduced Factor | | `0.5` *(default)* ⁶ | — | — | — | — | — | — | — |
+| Reset Value | | 500 *(default)* | 500 *(default)* | 500 *(default)* | 500 *(default)* | 500 *(default)* | 500 *(default)* | 500 *(default)* | 500 *(default)* |
+| Output Unit | | *Your preference* | *Your preference* | *Your preference* | *Your preference* | *Your preference* | *Your preference* | *Your preference* | *Your preference* |
 
 ---
 
@@ -146,13 +141,10 @@ Multiple peaks per day — the top 5 hourly peaks anywhere in the month count re
 See the ⚠️ section above. Two separate instances required.
 
 ### Jönköping Energi
-See the ⚠️ section above. This model uses the average of the two highest peaks per day, which is currently not supported by Peak Monitor.
+Uses the average of the **two highest** intra-day peaks as the daily committed value. Set *Daily Peak Averaging = 2* under Basic Setup. All other settings follow the same winter/weekday model: active Nov–Mar, helgfria vardagar 07–20, official holidays excluded. You will see two **Daily Sub-Peak** sensors (one per slot) and a **Daily Peak Average** sensor showing the averaged value that will be committed at midnight.
 
 ### Umeå Energi
 Five-peak winter model, weekdays 07–20. In addition to official red days, julafton and nyårsafton are excluded — enable these alongside the Official holidays option in Define Holidays.
 
 ### Mälarenergi (Västerås)
 See the ⚠️ section above. Two separate instances required for the current pricing model (from January 2025). Verify your exact contract terms and current price list with Mälarenergi.
-
-### Lerum Energi *(launches 1 September 2026)*
-Effektavgift gäller 1 november till 31 mars under helgfria vardagar klockan 06:00–20:59. This is a clean winter-weekday model identical in structure to Göteborg Energi. Active hours 06–21 (hour 20 is the last measured hour). In addition to official holidays, trettondagsafton (January 5), julafton (December 24), and nyårsafton (December 31) should be excluded — enable these alongside the Official holidays option in Define Holidays.

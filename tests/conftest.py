@@ -28,6 +28,7 @@ _def.section = _section_passthrough
 _def.FlowResultType = MagicMock()
 sys.modules['homeassistant.components'] = MagicMock()
 sys.modules['homeassistant.components.sensor'] = MagicMock()
+sys.modules['homeassistant.components.persistent_notification'] = MagicMock()
 sys.modules['homeassistant.util'] = MagicMock()
 sys.modules['homeassistant.util.dt'] = MagicMock()
 

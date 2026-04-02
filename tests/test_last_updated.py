@@ -71,7 +71,10 @@ def _parse_sensor_classes_with_last_updated() -> dict[str, bool]:
     """
     Parse sensor.py AST and return a dict of
     {class_name: has_last_updated_key} for every class that defines
-    extra_state_attributes.
+    _build_extra_attrs (the per-sensor implementation method).
+
+    PeakMonitorBaseSensor is excluded — it only defines the base
+    extra_state_attributes dispatcher, not a real attribute implementation.
     """
     source = SENSOR_PY.read_text()
     tree = ast.parse(source)
@@ -80,14 +83,16 @@ def _parse_sensor_classes_with_last_updated() -> dict[str, bool]:
     for node in ast.walk(tree):
         if not isinstance(node, ast.ClassDef):
             continue
+        if node.name == "PeakMonitorBaseSensor":
+            continue
         for item in node.body:
             if not (
                 isinstance(item, ast.FunctionDef)
-                and item.name == "extra_state_attributes"
+                and item.name == "_build_extra_attrs"
             ):
                 continue
             has_key = any(
-                isinstance(n, ast.Constant) and n.value == "last_updated"
+                isinstance(n, ast.Constant) and n.value in ("last_updated", "peak_last_updated")
                 for n in ast.walk(item)
             )
             results[node.name] = has_key
@@ -109,10 +114,16 @@ class TestAllSensorsExposeLastUpdated:
         "PeakMonitorPercentageSensor",
         "PeakMonitorInternalEstimationSensor",
         "PeakMonitorCostIncreaseSensor",
+        # Immediate Headroom: derived live from sub-peaks every interval — no meaningful change timestamp
+        "PeakMonitorImmediateHeadroomSensor",
+        # Safe Headroom: same — derived live, no discrete commit event
+        "PeakMonitorSafeHeadroomSensor",
         # Status sensor: changes every time state changes — not a useful change timestamp
         "PeakMonitorActiveSensor",
         # Hour consumption: changes every reading — not a meaningful change timestamp
         "PeakMonitorHourConsumptionSensor",
+        # Consumption Pace Deviation: unpublished in this release
+        "PeakMonitorLinearDeviationSensor",
     }
 
     def test_every_extra_state_attributes_has_last_updated_key(self):
@@ -390,27 +401,27 @@ class TestMonthlyAverageTodayMarker:
         result = {"includes_today": today_in_tariff}
         for i, peak in enumerate(effective_peaks, 1):
             is_today = today_in_tariff and abs(peak - daily_peak) < 0.01
-            result[f"monthly_peak_{i}"] = peak
-            result[f"monthly_peak_{i}_is_today"] = is_today
+            result[f"period_peak_{i}"] = peak
+            result[f"period_peak_{i}_is_today"] = is_today
         return result
 
     def test_today_marker_set_when_daily_peak_included(self):
         attrs = self._compute_attrs([1000.0, 800.0, 600.0], daily_peak=1200.0)
-        assert attrs["monthly_peak_1_is_today"] is True
-        assert attrs["monthly_peak_2_is_today"] is False
-        assert attrs["monthly_peak_3_is_today"] is False
+        assert attrs["period_peak_1_is_today"] is True
+        assert attrs["period_peak_2_is_today"] is False
+        assert attrs["period_peak_3_is_today"] is False
 
     def test_today_marker_not_set_when_daily_peak_below_min(self):
         attrs = self._compute_attrs([1000.0, 800.0, 600.0], daily_peak=400.0)
-        assert attrs["monthly_peak_1_is_today"] is False
-        assert attrs["monthly_peak_2_is_today"] is False
-        assert attrs["monthly_peak_3_is_today"] is False
+        assert attrs["period_peak_1_is_today"] is False
+        assert attrs["period_peak_2_is_today"] is False
+        assert attrs["period_peak_3_is_today"] is False
 
     def test_today_marker_in_middle_position(self):
         attrs = self._compute_attrs([1000.0, 800.0, 600.0], daily_peak=900.0)
-        assert attrs["monthly_peak_1_is_today"] is False
-        assert attrs["monthly_peak_2_is_today"] is True   # 900 is 2nd highest
-        assert attrs["monthly_peak_3_is_today"] is False
+        assert attrs["period_peak_1_is_today"] is False
+        assert attrs["period_peak_2_is_today"] is True   # 900 is 2nd highest
+        assert attrs["period_peak_3_is_today"] is False
 
 
 # ---------------------------------------------------------------------------
@@ -423,7 +434,7 @@ class TestLastUpdatedNowSentinel:
     methods, so we test those methods directly here.
     """
 
-    # -- is_monthly_average_affecting_now (used by Running Average + Cost sensors) --
+    # -- is_monthly_average_affecting_now (used by Period Average + Cost sensors) --
 
     def test_monthly_avg_affecting_now_when_daily_peak_exceeds_min(self):
         coord = _make_coordinator()

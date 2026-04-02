@@ -14,19 +14,21 @@
               "consumption_sensor": "Consumption Sensor",
               "number_of_peaks": "Number of Peaks to Track",
               "only_one_peak_per_day": "Only count one peak per day",
-              "price_per_kw": "Price per kWh/h (SEK)",
-              "fixed_monthly_fee": "Fixed Monthly Fee (SEK)",
+              "price_per_kw": "Price per kWh",
+              "fixed_monthly_fee": "Fixed Monthly Fee",
               "active_months": "Active Months",
-              "sensor_resets_every_hour": "Sensor resets every hour"
+              "sensor_resets_every_hour": "Sensor resets every interval",
+              "daily_peaks_averaged": "Daily Peak Averaging (peaks per day)"
             },
             "data_description": {
-              "consumption_sensor": "Select the sensor that measures hourly power consumption",
+              "consumption_sensor": "Select the sensor that measures consumption or current power",
               "number_of_peaks": "How many monthly peaks to track for tariff calculation",
               "only_one_peak_per_day": "When enabled, only the highest reading per day is recorded as a peak",
               "price_per_kw": "Price per kW used for cost calculations",
               "fixed_monthly_fee": "Fixed monthly network fee added to cost calculations",
               "active_months": "Months during which the tariff is active",
-              "sensor_resets_every_hour": "Enable if your consumption sensor resets to 0 every hour. Disable if it is cumulative"
+              "sensor_resets_every_hour": "Enable if your consumption sensor resets to 0 every hour. Disable if it is cumulative",
+              "daily_peaks_averaged": "Number of intra-day peak readings to average for the daily committed value. 1 = disabled (standard single-peak). 2 = average of the two highest peaks per day (e.g. Jönköping Energi model). Requires 'Only count one peak per day' to be enabled."
             }
           },
           "weekdays_section": {
@@ -82,20 +84,37 @@
           "advanced_section": {
             "name": "Advanced",
             "data": {
-              "estimation_sensor": "Estimation Sensor (optional)",
-              "external_reduced_sensor": "External Reduce Sensor (optional)",
-              "external_mute_sensor": "External Mute Sensor (optional)",
               "reset_value": "Reset Value",
+              "interval_minutes": "Measurement Interval",
+              "reset_interval": "Reset Interval",
               "output_unit": "Output Value",
-              "reduced_factor": "Reduced Tariff Multiplication Factor"
+              "currency": "Currency",
+              "custom_currency": "Custom Currency (ISO 4217)",
+              "reduced_factor": "Reduced Tariff Multiplication Factor",
+              "input_unit": "Input Unit"
             },
             "data_description": {
-              "estimation_sensor": "Optional: External sensor for consumption estimation. Leave empty to use built-in estimation",
-              "external_reduced_sensor": "Optional binary sensor. When ON, activates reduced tariff mode",
-              "external_mute_sensor": "Optional binary sensor. When ON, mutes the tariff completely",
-              "reset_value": "Value the sensor resets to at the start of each day and month",
+              "reset_value": "Value the sensor resets to at the start of each period",
+              "interval_minutes": "Length of each measurement interval (6-120 min). Peaks are committed at each interval boundary. Default: 60 min (standard hourly).",
+              "reset_interval": "How often period peaks are automatically reset (Weekly, Monthly, or Manual only)",
               "output_unit": "Unit used for output sensor values (W = Watt, kW = Kilowatt)",
-              "reduced_factor": "Factor applied to consumption during reduced tariff periods (0.01–1.0, default 0.5)"
+              "currency": "Currency used for cost calculations",
+              "custom_currency": "Enter a valid ISO 4217 currency code (e.g. NOK, DKK, GBP). Only used when Currency is set to Custom",
+              "reduced_factor": "Factor applied to consumption during reduced tariff periods (0.01–1.0, default 0.5)",
+              "input_unit": "Unit of the input sensor. Leave as *Auto* (recommended) — Peak Monitor will detect it from the sensor automatically. Set manually only if your sensor has no unit_of_measurement. If the manual value conflicts with the auto-detected unit, auto-detection wins."
+            }
+          },
+          "external_sensors_section": {
+            "name": "Optional External Sensors",
+            "data": {
+              "estimation_sensor": "Estimation Sensor (optional)",
+              "external_reduced_sensor": "External Reduce Sensor (optional)",
+              "external_mute_sensor": "External Mute Sensor (optional)"
+            },
+            "data_description": {
+              "estimation_sensor": "Optional: External sensor for consumption estimation. Leave empty to use built-in estimation. Once an entity is selected, it cannot be removed, only exchanged for another entity",
+              "external_reduced_sensor": "Optional binary sensor. When ON, activates reduced tariff mode",
+              "external_mute_sensor": "Optional binary sensor. When ON, mutes the tariff completely"
             }
           }
         }
@@ -113,19 +132,21 @@
               "consumption_sensor": "Consumption Sensor",
               "number_of_peaks": "Number of Peaks to Track",
               "only_one_peak_per_day": "Only count one peak per day",
-              "price_per_kw": "Price per kWh/h (SEK)",
-              "fixed_monthly_fee": "Fixed Monthly Fee (SEK)",
+              "price_per_kw": "Price per kW",
+              "fixed_monthly_fee": "Fixed Monthly Fee",
               "active_months": "Active Months",
-              "sensor_resets_every_hour": "Sensor resets every hour"
+              "sensor_resets_every_hour": "Sensor resets every hour",
+              "daily_peaks_averaged": "Daily Peak Averaging (peaks per day)"
             },
             "data_description": {
-              "consumption_sensor": "Select the sensor that measures hourly power consumption",
+              "consumption_sensor": "Select the sensor that measures consumption or current power",
               "number_of_peaks": "How many monthly peaks to track for tariff calculation",
               "only_one_peak_per_day": "When enabled, only the highest reading per day is recorded as a peak",
               "price_per_kw": "Price per kW used for cost calculations",
               "fixed_monthly_fee": "Fixed monthly network fee added to cost calculations",
               "active_months": "Months during which the tariff is active",
-              "sensor_resets_every_hour": "Enable if your consumption sensor resets to 0 every hour. Disable if it is cumulative"
+              "sensor_resets_every_hour": "Enable if your consumption sensor resets to 0 every hour. Disable if it is cumulative",
+              "daily_peaks_averaged": "Number of intra-day peak readings to average for the daily committed value. 1 = disabled (standard single-peak). 2 = average of the two highest peaks per day (e.g. Jönköping Energi model). Requires 'Only count one peak per day' to be enabled."
             }
           },
           "weekdays_section": {
@@ -181,24 +202,44 @@
           "advanced_section": {
             "name": "Advanced",
             "data": {
+              "reset_value": "Reset Value",
+              "interval_minutes": "Measurement Interval",
+              "reset_interval": "Reset Interval",
+              "output_unit": "Output Value",
+              "currency": "Currency",
+              "custom_currency": "Custom Currency (ISO 4217)",
+              "reduced_factor": "Reduced Tariff Multiplication Factor",
+              "input_unit": "Input Unit"
+            },
+            "data_description": {
+              "reset_value": "Value the sensor resets to at the start of each period",
+              "interval_minutes": "Length of each measurement interval (6-120 min). Peaks are committed at each interval boundary. Default: 60 min (standard hourly).",
+              "reset_interval": "How often period peaks are automatically reset (Weekly, Monthly, or Manual only)",
+              "output_unit": "Unit used for output sensor values (W = Watt, kW = Kilowatt)",
+              "currency": "Currency used for cost calculations",
+              "custom_currency": "Enter a valid ISO 4217 currency code (e.g. NOK, DKK, GBP). Only used when Currency is set to Custom",
+              "reduced_factor": "Factor applied to consumption during reduced tariff periods (0.01–1.0, default 0.5)",
+              "input_unit": "Unit of the input sensor. Leave as *Auto* (recommended) — Peak Monitor will detect it from the sensor automatically. Set manually only if your sensor has no unit_of_measurement. If the manual value conflicts with the auto-detected unit, auto-detection wins."
+            }
+          },
+          "external_sensors_section": {
+            "name": "Optional External Sensors",
+            "data": {
               "estimation_sensor": "Estimation Sensor (optional)",
               "external_reduced_sensor": "External Reduce Sensor (optional)",
-              "external_mute_sensor": "External Mute Sensor (optional)",
-              "reset_value": "Reset Value",
-              "output_unit": "Output Value",
-              "reduced_factor": "Reduced Tariff Multiplication Factor"
+              "external_mute_sensor": "External Mute Sensor (optional)"
             },
             "data_description": {
               "estimation_sensor": "Optional: External sensor for consumption estimation. Leave empty to use built-in estimation",
               "external_reduced_sensor": "Optional binary sensor. When ON, activates reduced tariff mode",
-              "external_mute_sensor": "Optional binary sensor. When ON, mutes the tariff completely",
-              "reset_value": "Value the sensor resets to at the start of each month",
-              "output_unit": "Unit used for output sensor values (W = Watt, kW = Kilowatt)",
-              "reduced_factor": "Factor applied to consumption during reduced tariff periods (0.01–1.0, default 0.5)"
+              "external_mute_sensor": "Optional binary sensor. When ON, mutes the tariff completely"
             }
           }
         }
       }
+    },
+    "error": {
+      "daily_peaks_averaged_incompatible": "'Average of N highest peaks per day' requires 'Only count one peak per day' to be enabled. Please enable it or set averaging to 1."
     }
   },
   "options": {
@@ -215,16 +256,18 @@
               "price_per_kw": "Price per kWh/h (SEK)",
               "fixed_monthly_fee": "Fixed Monthly Fee (SEK)",
               "active_months": "Active Months",
-              "sensor_resets_every_hour": "Sensor resets every hour"
+              "sensor_resets_every_hour": "Sensor resets every hour",
+              "daily_peaks_averaged": "Daily Peak Averaging (peaks per day)"
             },
             "data_description": {
-              "consumption_sensor": "Select the sensor that measures hourly power consumption",
+              "consumption_sensor": "Select the sensor that measures consumption or current power",
               "number_of_peaks": "How many monthly peaks to track for tariff calculation",
               "only_one_peak_per_day": "When enabled, only the highest reading per day is recorded as a peak",
               "price_per_kw": "Price per kW used for cost calculations",
               "fixed_monthly_fee": "Fixed monthly network fee added to cost calculations",
               "active_months": "Months during which the tariff is active",
-              "sensor_resets_every_hour": "Enable if your consumption sensor resets to 0 every hour. Disable if it is cumulative"
+              "sensor_resets_every_hour": "Enable if your consumption sensor resets to 0 every hour. Disable if it is cumulative",
+              "daily_peaks_averaged": "Number of intra-day peak readings to average for the daily committed value. 1 = disabled (standard single-peak). 2 = average of the two highest peaks per day (e.g. Jönköping Energi model). Requires 'Only count one peak per day' to be enabled."
             }
           },
           "weekdays_section": {
@@ -280,24 +323,44 @@
           "advanced_section": {
             "name": "Advanced",
             "data": {
-              "estimation_sensor": "Estimation Sensor (optional)",
-              "external_reduced_sensor": "External Reduce Sensor (optional)",
-              "external_mute_sensor": "External Mute Sensor (optional)",
               "reset_value": "Reset Value",
+              "interval_minutes": "Measurement Interval",
+              "reset_interval": "Reset Interval",
               "output_unit": "Output Value",
-              "reduced_factor": "Reduced Tariff Multiplication Factor"
+              "currency": "Currency",
+              "custom_currency": "Custom Currency (ISO 4217)",
+              "reduced_factor": "Reduced Tariff Multiplication Factor",
+              "input_unit": "Input Unit"
             },
             "data_description": {
-              "estimation_sensor": "Optional: External sensor for consumption estimation. Leave empty to use built-in estimation",
-              "external_reduced_sensor": "Optional binary sensor. When ON, activates reduced tariff mode",
-              "external_mute_sensor": "Optional binary sensor. When ON, mutes the tariff completely",
-              "reset_value": "Value the sensor resets to at the start of each month",
+              "reset_value": "Value the sensor resets to at the start of each period",
+              "interval_minutes": "Length of each measurement interval (6-120 min). Peaks are committed at each interval boundary. Default: 60 min (standard hourly).",
+              "reset_interval": "How often period peaks are automatically reset (Weekly, Monthly, or Manual only)",
               "output_unit": "Unit used for output sensor values (W = Watt, kW = Kilowatt)",
-              "reduced_factor": "Factor applied to consumption during reduced tariff periods (0.01–1.0, default 0.5)"
+              "currency": "Currency used for cost calculations",
+              "custom_currency": "Enter a valid ISO 4217 currency code (e.g. NOK, DKK, GBP). Only used when Currency is set to Custom",
+              "reduced_factor": "Factor applied to consumption during reduced tariff periods (0.01–1.0, default 0.5)",
+              "input_unit": "Unit of the input sensor. Leave as *Auto* (recommended) — Peak Monitor will detect it from the sensor automatically. Set manually only if your sensor has no unit_of_measurement. If the manual value conflicts with the auto-detected unit, auto-detection wins."
+            }
+          },
+          "external_sensors_section": {
+            "name": "Optional External Sensors",
+            "data": {
+              "estimation_sensor": "Estimation Sensor (optional)",
+              "external_reduced_sensor": "External Reduce Sensor (optional)",
+              "external_mute_sensor": "External Mute Sensor (optional)"
+            },
+            "data_description": {
+              "estimation_sensor": "Optional: External sensor for consumption estimation. Leave empty to use built-in estimation. Once an entity is selected, it cannot be removed, only exchanged for another entity",
+              "external_reduced_sensor": "Optional binary sensor. When ON, activates reduced tariff mode",
+              "external_mute_sensor": "Optional binary sensor. When ON, mutes the tariff completely"
             }
           }
         }
       }
+    },
+    "error": {
+      "daily_peaks_averaged_incompatible": "'Average of N highest peaks per day' requires 'Only count one peak per day' to be enabled. Please enable it or set averaging to 1."
     }
   },
   "selector": {
@@ -342,14 +405,32 @@
     },
     "input_unit": {
       "options": {
-        "Wh": "Wh",
-        "kWh": "kWh"
+        "auto": "Auto (detected from sensor)",
+        "Wh": "Wh – Watt-hour (energy)",
+        "kWh": "kWh – Kilowatt-hour (energy)",
+        "W": "W – Watt (power sensor, integral calculated)",
+        "kW": "kW – Kilowatt (power sensor, integral calculated)"
       }
     },
     "output_unit": {
       "options": {
         "W": "W (Watt)",
         "kW": "kW (Kilowatt)"
+      }
+    },
+    "reset_interval": {
+      "options": {
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "manual": "Manual only"
+      }
+    },
+    "currency": {
+      "options": {
+        "SEK": "SEK – Swedish Krona",
+        "EUR": "EUR – Euro",
+        "USD": "USD – US Dollar",
+        "custom": "Custom (ISO 4217)"
       }
     }
   },
@@ -358,11 +439,14 @@
       "target": {
         "name": "Target"
       },
-      "relative_to_target": {
-        "name": "Estimation Relative to Target"
+      "immediate_headroom": {
+        "name": "Immediate Headroom"
       },
-      "percentage_of_target": {
-        "name": "Estimation Percentage of Target"
+      "consumption_pace_deviation": {
+        "name": "Consumption Pace Deviation"
+      },
+      "target_usage_percentage": {
+        "name": "Target Usage %"
       },
       "daily_peak": {
         "name": "Daily Peak"
@@ -375,51 +459,97 @@
           "active": "Active"
         }
       },
-      "running_peak_1": {
-        "name": "Running Peak 1"
+      "period_peak_1": {
+        "name": "Period Peak 1"
       },
-      "running_peak_2": {
-        "name": "Running Peak 2"
+      "period_peak_2": {
+        "name": "Period Peak 2"
       },
-      "running_peak_3": {
-        "name": "Running Peak 3"
+      "period_peak_3": {
+        "name": "Period Peak 3"
       },
-      "running_peak_4": {
-        "name": "Running Peak 4"
+      "period_peak_4": {
+        "name": "Period Peak 4"
       },
-      "running_peak_5": {
-        "name": "Running Peak 5"
+      "period_peak_5": {
+        "name": "Period Peak 5"
       },
-      "running_peak_6": {
-        "name": "Running Peak 6"
+      "period_peak_6": {
+        "name": "Period Peak 6"
       },
-      "running_peak_7": {
-        "name": "Running Peak 7"
+      "period_peak_7": {
+        "name": "Period Peak 7"
       },
-      "running_peak_8": {
-        "name": "Running Peak 8"
+      "period_peak_8": {
+        "name": "Period Peak 8"
       },
-      "running_peak_9": {
-        "name": "Running Peak 9"
+      "period_peak_9": {
+        "name": "Period Peak 9"
       },
-      "running_peak_10": {
-        "name": "Running Peak 10"
+      "period_peak_10": {
+        "name": "Period Peak 10"
       },
-      "running_average": {
-        "name": "Running Average"
+      "period_average": {
+        "name": "Period Average"
       },
       "interval_consumption": {
         "name": "Interval Consumption"
       },
-      "interval_consumption_estimate": {
-        "name": "Interval Consumption Estimate"
+      "daily_sub_peak_1": {
+        "name": "Daily Sub-Peak 1"
       },
-      "power_grid_peak_tariff": {
-        "name": "Power Grid Peak Tariff"
+      "daily_sub_peak_2": {
+        "name": "Daily Sub-Peak 2"
       },
-      "cost_increase_estimate": {
-        "name": "Cost Increase Estimate"
+      "daily_sub_peak_3": {
+        "name": "Daily Sub-Peak 3"
+      },
+      "daily_sub_peak_4": {
+        "name": "Daily Sub-Peak 4"
+      },
+      "daily_sub_peak_5": {
+        "name": "Daily Sub-Peak 5"
+      },
+      "cost_increase_forecast": {
+        "name": "Cost Increase Forecast"
+      },
+      "interval_consumption_forecast": {
+        "name": "Interval Consumption Forecast"
+      },
+      "daily_peak_average": {
+        "name": "Daily Peak Average"
+      },
+      "safe_headroom": {
+        "name": "Safe Headroom"
+      },
+      "period_cost": {
+        "name": "Period Cost"
+      },
+      "target_headroom": {
+        "name": "Target Headroom"
       }
+    }
+  },
+  "errors": {},
+  "services": {
+    "reset_peak": {
+      "fields": {
+        "config_entry_id": {
+          "name": "Instance",
+          "description": "The Peak Monitor instance to target. If you have only one instance you can leave this empty and it will apply to all instances."
+        }
+      }
+    }
+  },
+  "interval_minutes": {
+    "options": {
+      "6": "6 min",
+      "12": "12 min",
+      "15": "15 min",
+      "20": "20 min",
+      "30": "30 min",
+      "60": "60 min (standard hourly)",
+      "120": "120 min (2 hours)"
     }
   }
 }

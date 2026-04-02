@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Konfigurera Effekttariff",
+        "title": "Konfigurera Peak Monitor",
         "description": "Ställ in övervakning av effekttariff för svensk elprissättning",
         "data": {
           "name": "Namn"
@@ -12,21 +12,23 @@
             "name": "Grundinställning",
             "data": {
               "consumption_sensor": "Förbrukningssensor",
-              "number_of_peaks": "Antal Toppar att Spåra",
+              "number_of_peaks": "Antal toppar att spåra",
               "only_one_peak_per_day": "Räkna endast en topp per dag",
-              "price_per_kw": "Pris per kWh/h (SEK)",
+              "price_per_kw": "Pris per kW (SEK)",
               "fixed_monthly_fee": "Fast månadsavgift (SEK)",
-              "active_months": "Aktiva Månader",
-              "sensor_resets_every_hour": "Sensorn återställer sig varje timme"
+              "active_months": "Aktiva månader",
+              "sensor_resets_every_hour": "Sensorn återställer sig efter varje intervall",
+              "daily_peaks_averaged": "Daglig toppmedelvärde (toppar per dag)"
             },
             "data_description": {
-              "consumption_sensor": "Välj sensorn som mäter timförbrukning",
-              "number_of_peaks": "Hur många månatliga toppar att spåra för tariffberäkning",
+              "consumption_sensor": "Välj sensorn som mäter förbrukning eller effekt",
+              "number_of_peaks": "Hur många månatliga toppar att spåra",
               "only_one_peak_per_day": "När aktiverat, registreras endast det högsta värdet per dag som en topp",
               "price_per_kw": "Pris per kW, används för kostnadsberäkningar",
               "fixed_monthly_fee": "Fast månatlig nätverksavgift läggs till kostnadsberäkningarna",
               "active_months": "Månader då tariffen är aktiv",
-              "sensor_resets_every_hour": "Aktivera om din förbrukningssensor återställs till 0 varje timme. Inaktivera om den är kumulativ"
+              "sensor_resets_every_hour": "Aktivera om din förbrukningssensor återställs till 0 varje timme. Inaktivera om den fortsätter räkna upp",
+              "daily_peaks_averaged": "Antal intra-dagliga toppvärden att medelvärdesberäkna för det dagliga inlämnade värdet. 1 = avaktiverat (standard). 2 = medelvärde av de två högsta topparna per dag (t.ex. Jönköping Energi). Kräver att 'Räkna bara en topp per dag' är aktiverat."
             }
           },
           "weekdays_section": {
@@ -44,24 +46,24 @@
             "name": "Helger",
             "data": {
               "weekend_behavior": "Helgbeteende",
-              "weekend_start_hour": "Helgens Starttimme",
-              "weekend_end_hour": "Helgens Sluttimme"
+              "weekend_start_hour": "starttimme helger",
+              "weekend_end_hour": "Sluttimme helger"
             },
             "data_description": {
               "weekend_behavior": "Hur tariffen beter sig på lördagar och söndagar",
-              "weekend_start_hour": "Timme när helgtariffbeteendet börjar (standard 6). Samma som slut = hela dagen",
-              "weekend_end_hour": "Timme när helgtariffbeteendet slutar (standard 21). Samma som start = hela dagen"
+              "weekend_start_hour": "Timme när helgtariffbeteendet börjar. Samma som slut = hela dagen",
+              "weekend_end_hour": "Timme när helgtariffbeteendet slutar. Samma som start = hela dagen"
             }
           },
           "holidays_section": {
             "name": "Helgdagar",
             "data": {
               "holiday_behavior": "Helgdagsbeteende",
-              "holidays": "Definiera Helgdagar"
+              "holidays": "Definiera helgdagar"
             },
             "data_description": {
               "holiday_behavior": "Hur tariffen beter sig på helgdagar",
-              "holidays": "Välj helgdagar och helgaftnar som ska utlösa helgdagsbeteendet"
+              "holidays": "Välj helgdagar och helgaftnar som ska aktivera helgdagsbeteendet"
             }
           },
           "reduced_section": {
@@ -82,20 +84,37 @@
           "advanced_section": {
             "name": "Avancerat",
             "data": {
-              "estimation_sensor": "Uppskattningssensor (valfri)",
-              "external_reduced_sensor": "Extern Reduce-sensor (valfri)",
-              "external_mute_sensor": "Extern Mute-sensor (valfri)",
               "reset_value": "Återställningsvärde",
-              "output_unit": "Utdatavärde",
-              "reduced_factor": "Multiplikationsfaktor för reducerad taxa"
+              "interval_minutes": "Mätintervall",
+              "reset_interval": "Återställningsintervall",
+              "output_unit": "Utgångsvärde",
+              "currency": "Valuta",
+              "custom_currency": "Anpassad valuta (ISO 4217)",
+              "reduced_factor": "Multiplikationsfaktor för reducerad tariff",
+              "input_unit": "Ingångsenhet"
             },
             "data_description": {
-              "estimation_sensor": "Valfritt: Extern sensor för förbrukningsuppskattning. Lämna tom för att använda intern uppskattning",
-              "external_reduced_sensor": "Valfri binär sensor som när PÅ aktiverar reducerat tariffläge",
-              "external_mute_sensor": "Valfri binär sensor som när PÅ stänger av tariffen helt",
-              "reset_value": "Värde som sensorerna återställs till efter varje dag och månad",
-              "output_unit": "Unit used for output sensor values (W = Watt, kW = Kilowatt)",
-              "reduced_factor": "Faktor som multipliceras med förbrukningen under reducerad taxa-perioder (0,01–1,0, standard 0,5)"
+              "reset_value": "Värdet sensorn återställs till vid periodens start",
+              "interval_minutes": "Längd på varje mätintervall (6–120 min). Toppar registreras vid varje intervallgräns. Standard: 60 min (standard per timme).",
+              "reset_interval": "Hur ofta löpande toppar återställs automatiskt (Veckovis, Månadsvis eller Endast manuellt)",
+              "output_unit": "Enhet för resulterande sensorer (W = Watt, kW = Kilowatt)",
+              "currency": "Valuta för kostnadsberäkningar",
+              "custom_currency": "Ange en giltig ISO 4217-valutakod (t.ex. NOK, DKK, GBP). Används bara när Valuta är inställd på Anpassad",
+              "reduced_factor": "Faktor som tillämpas på förbrukning under reducerade tariffperioder (0,01–1,0, standard 0,5)",
+              "input_unit": "Enhet för ingångssensorn. Lämna på *Auto* (rekommenderas) — Peak Monitor detekterar den automatiskt. Välj manuellt bara om sensorn saknar unit_of_measurement. Vid konflikt vinner auto-detektion."
+            }
+          },
+          "external_sensors_section": {
+            "name": "Valfria externa sensorer",
+            "data": {
+              "estimation_sensor": "Uppskattningssensor (valfri)",
+              "external_reduced_sensor": "Extern sensor för reducerat läg (valfri)",
+              "external_mute_sensor": "Extern sensor för inaktiverat läge (valfri)"
+            },
+            "data_description": {
+              "estimation_sensor": "Valfri sensor: Extern sensor för förbrukningsuppskattning. Lämna tom för att använda inbyggda uppskattningen. OBS! Har den en gång konfiguerats, kan den ej tas bort, bara bytas mot annan entitet",
+              "external_reduced_sensor": "Valfri binär sensor. När PÅ aktiveras reducerad tariff",
+              "external_mute_sensor": "Valfri binär sensor. När PÅ tystas tariffen helt"
             }
           }
         }
@@ -111,21 +130,23 @@
             "name": "Grundinställning",
             "data": {
               "consumption_sensor": "Förbrukningssensor",
-              "number_of_peaks": "Antal Toppar att Spåra",
+              "number_of_peaks": "Antal toppar att spåra",
               "only_one_peak_per_day": "Räkna endast en topp per dag",
-              "price_per_kw": "Pris per kWh/h (SEK)",
-              "fixed_monthly_fee": "Fast månadsavgift (SEK)",
-              "active_months": "Aktiva Månader",
-              "sensor_resets_every_hour": "Sensorn återställer sig varje timme"
+              "price_per_kw": "Pris per kW",
+              "fixed_monthly_fee": "Fast månadsavgift",
+              "active_months": "Aktiva månader",
+              "sensor_resets_every_hour": "Sensorn återställer sig varje timme",
+              "daily_peaks_averaged": "Daglig toppmedelvärde (toppar per dag)"
             },
             "data_description": {
-              "consumption_sensor": "Välj sensorn som mäter timförbrukning",
-              "number_of_peaks": "Hur många månatliga toppar att spåra för tariffberäkning",
+              "consumption_sensor": "Välj sensorn som mäter förbrukning eller effekt",
+              "number_of_peaks": "Hur många månatliga toppar att spåra",
               "only_one_peak_per_day": "När aktiverat, registreras endast det högsta värdet per dag som en topp",
               "price_per_kw": "Pris per kW, används för kostnadsberäkningar",
               "fixed_monthly_fee": "Fast månatlig nätverksavgift läggs till kostnadsberäkningarna",
               "active_months": "Månader då tariffen är aktiv",
-              "sensor_resets_every_hour": "Aktivera om din förbrukningssensor återställs till 0 varje timme. Inaktivera om den är kumulativ"
+              "sensor_resets_every_hour": "Aktivera om din förbrukningssensor återställs till 0 varje timme. Inaktivera om den fortsätter räkna upp",
+              "daily_peaks_averaged": "Antal intra-dagliga toppvärden att medelvärdesberäkna för det dagliga inlämnade värdet. 1 = avaktiverat (standard). 2 = medelvärde av de två högsta topparna per dag (t.ex. Jönköping Energi). Kräver att 'Räkna bara en topp per dag' är aktiverat."
             }
           },
           "weekdays_section": {
@@ -143,24 +164,24 @@
             "name": "Helger",
             "data": {
               "weekend_behavior": "Helgbeteende",
-              "weekend_start_hour": "Helgens Starttimme",
-              "weekend_end_hour": "Helgens Sluttimme"
+              "weekend_start_hour": "starttimme helger",
+              "weekend_end_hour": "Sluttimme helger"
             },
             "data_description": {
               "weekend_behavior": "Hur tariffen beter sig på lördagar och söndagar",
-              "weekend_start_hour": "Timme när helgtariffbeteendet börjar (standard 6). Samma som slut = hela dagen",
-              "weekend_end_hour": "Timme när helgtariffbeteendet slutar (standard 21). Samma som start = hela dagen"
+              "weekend_start_hour": "Timme när helgtariffbeteendet börjar. Samma som slut = hela dagen",
+              "weekend_end_hour": "Timme när helgtariffbeteendet slutar. Samma som start = hela dagen"
             }
           },
           "holidays_section": {
             "name": "Helgdagar",
             "data": {
               "holiday_behavior": "Helgdagsbeteende",
-              "holidays": "Definiera Helgdagar"
+              "holidays": "Definiera helgdagar"
             },
             "data_description": {
               "holiday_behavior": "Hur tariffen beter sig på helgdagar",
-              "holidays": "Välj helgdagar och helgaftnar som ska utlösa helgdagsbeteendet"
+              "holidays": "Välj helgdagar och helgaftnar som ska aktivera helgdagsbeteendet"
             }
           },
           "reduced_section": {
@@ -181,24 +202,44 @@
           "advanced_section": {
             "name": "Avancerat",
             "data": {
-              "estimation_sensor": "Uppskattningssensor (valfri)",
-              "external_reduced_sensor": "Extern Reduce-sensor (valfri)",
-              "external_mute_sensor": "Extern Mute-sensor (valfri)",
               "reset_value": "Återställningsvärde",
-              "output_unit": "Utdatavärde",
-              "reduced_factor": "Multiplikationsfaktor för reducerad taxa"
+              "interval_minutes": "Mätintervall",
+              "reset_interval": "Återställningsintervall",
+              "output_unit": "Utgångsvärde",
+              "currency": "Valuta",
+              "custom_currency": "Anpassad valuta (ISO 4217)",
+              "reduced_factor": "Multiplikationsfaktor för reducerad tariff",
+              "input_unit": "Ingångsenhet"
             },
             "data_description": {
-              "estimation_sensor": "Valfritt: Extern sensor för förbrukningsuppskattning. Lämna tom för att använda intern uppskattning",
-              "external_reduced_sensor": "Valfri binär sensor som när PÅ aktiverar reducerat tariffläge",
-              "external_mute_sensor": "Valfri binär sensor som när PÅ stänger av tariffen helt",
-              "reset_value": "Värde som sensorerna återställs till efter varje dag och månad",
-              "output_unit": "Unit used for output sensor values (W = Watt, kW = Kilowatt)",
-              "reduced_factor": "Faktor som multipliceras med förbrukningen under reducerad taxa-perioder (0,01–1,0, standard 0,5)"
+              "reset_value": "Värdet sensorn återställs till vid periodens start",
+              "interval_minutes": "Längd på varje mätintervall (6–120 min). Toppar registreras vid varje intervallgräns. Standard: 60 min (standard per timme).",
+              "reset_interval": "Hur ofta löpande toppar återställs automatiskt (Veckovis, Månadsvis eller Endast manuellt)",
+              "output_unit": "Enhet för resulterande sensorer (W = Watt, kW = Kilowatt)",
+              "currency": "Valuta för kostnadsberäkningar",
+              "custom_currency": "Ange en giltig ISO 4217-valutakod (t.ex. NOK, DKK, GBP). Används bara när Valuta är inställd på Anpassad",
+              "reduced_factor": "Faktor som tillämpas på förbrukning under reducerade tariffperioder (0,01–1,0, standard 0,5)",
+              "input_unit": "Enhet för ingångssensorn. Lämna på *Auto* (rekommenderas) — Peak Monitor detekterar den automatiskt. Välj manuellt bara om sensorn saknar unit_of_measurement. Vid konflikt vinner auto-detektion."
+            }
+          },
+          "external_sensors_section": {
+            "name": "Valfria externa sensorer",
+            "data": {
+              "estimation_sensor": "Uppskattningssensor (valfri)",
+              "external_reduced_sensor": "Extern sensor för reducerat läg (valfri)",
+              "external_mute_sensor": "Extern sensor för inaktiverat läge (valfri)"
+            },
+            "data_description": {
+              "estimation_sensor": "Valfri sensor: Extern sensor för förbrukningsuppskattning. Lämna tom för att använda inbyggda uppskattningen OBS! Har den en gång konfiguerats, kan den ej tas bort, bara bytas mot annan entitet",
+              "external_reduced_sensor": "Valfri binär sensor. När PÅ aktiveras reducerad tariff",
+              "external_mute_sensor": "Valfri binär sensor. När PÅ tystas tariffen helt"
             }
           }
         }
       }
+    },
+    "error": {
+      "daily_peaks_averaged_incompatible": "'Medelvärde av N högsta toppar per dag' kräver att 'Räkna bara en topp per dag' är aktiverat. Aktivera det eller ställ in medelvärde till 1."
     }
   },
   "options": {
@@ -212,10 +253,11 @@
               "consumption_sensor": "Förbrukningssensor",
               "number_of_peaks": "Antal Toppar att Spåra",
               "only_one_peak_per_day": "Räkna endast en topp per dag",
-              "price_per_kw": "Pris per kWh/h (SEK)",
-              "fixed_monthly_fee": "Fast månadsavgift (SEK)",
+              "price_per_kw": "Pris per kW",
+              "fixed_monthly_fee": "Fast månadsavgift",
               "active_months": "Aktiva Månader",
-              "sensor_resets_every_hour": "Sensorn återställer sig varje timme"
+              "sensor_resets_every_hour": "Sensorn återställer sig varje timme",
+              "daily_peaks_averaged": "Daglig toppmedelvärde (toppar per dag)"
             },
             "data_description": {
               "consumption_sensor": "Välj sensorn som mäter timförbrukning",
@@ -224,7 +266,8 @@
               "price_per_kw": "Pris per kW, används för kostnadsberäkningar",
               "fixed_monthly_fee": "Fast månatlig nätverksavgift läggs till kostnadsberäkningarna",
               "active_months": "Månader då tariffen är aktiv",
-              "sensor_resets_every_hour": "Aktivera om din förbrukningssensor återställs till 0 varje timme. Inaktivera om den är kumulativ"
+              "sensor_resets_every_hour": "Aktivera om din förbrukningssensor återställs till 0 varje timme. Inaktivera om den är kumulativ",
+              "daily_peaks_averaged": "Antal intra-dagliga toppvärden att medelvärdesberäkna för det dagliga inlämnade värdet. 1 = avaktiverat (standard). 2 = medelvärde av de två högsta topparna per dag (t.ex. Jönköping Energi). Kräver att 'Räkna bara en topp per dag' är aktiverat — en varning visas om inställningarna är inkompatibla."
             }
           },
           "weekdays_section": {
@@ -280,24 +323,43 @@
           "advanced_section": {
             "name": "Avancerat",
             "data": {
-              "estimation_sensor": "Uppskattningssensor (valfri)",
-              "external_reduced_sensor": "Extern Reduce-sensor (valfri)",
-              "external_mute_sensor": "Extern Mute-sensor (valfri)",
               "reset_value": "Återställningsvärde",
-              "output_unit": "Utdatavärde",
-              "reduced_factor": "Multiplikationsfaktor för reducerad taxa"
+              "interval_minutes": "Mätintervall",
+              "reset_interval": "Återställningsintervall",
+              "output_unit": "Utgångsvärde",
+              "currency": "Valuta",
+              "custom_currency": "Anpassad valuta (ISO 4217)",
+              "reduced_factor": "Multiplikationsfaktor för reducerad tariff",
+              "input_unit": "Ingångsenhet"
             },
             "data_description": {
-              "external_reduced_sensor": "Valfri binär sensor som när PÅ aktiverar reducerat tariffläge",
-              "external_mute_sensor": "Valfri binär sensor som när PÅ stänger av tariffen helt",
-              "reset_value": "Värde som sensorerna återställs till efter varje dag och månad",
-              "output_unit": "Unit used for output sensor values (W = Watt, kW = Kilowatt)",
-              "estimation_sensor": "Valfritt: Extern sensor för förbrukningsuppskattning. Lämna tom för att använda intern uppskattning",
-              "reduced_factor": "Faktor som multipliceras med förbrukningen under reducerad taxa-perioder (0,01–1,0, standard 0,5)"
+              "reset_value": "Värdet sensorn återställs till vid periodens start",
+              "reset_interval": "Hur ofta löpande toppar återställs automatiskt (Veckovis, Månadsvis eller Endast manuellt)",
+              "output_unit": "Enhet för utmatningssensorvärden (W = Watt, kW = Kilowatt)",
+              "currency": "Valuta för kostnadsberäkningar",
+              "custom_currency": "Ange en giltig ISO 4217-valutakod (t.ex. NOK, DKK, GBP). Används bara när Valuta är inställd på Anpassad",
+              "reduced_factor": "Faktor som tillämpas på förbrukning under reducerade tariffperioder (0,01–1,0, standard 0,5)",
+              "input_unit": "Enhet för ingångssensorn. Lämna på *Auto* (rekommenderas) — Peak Monitor detekterar den automatiskt. Välj manuellt bara om sensorn saknar unit_of_measurement. Vid konflikt vinner auto-detektion."
+            }
+          },
+          "external_sensors_section": {
+            "name": "Valfria externa sensorer",
+            "data": {
+              "estimation_sensor": "Uppskattningssensor (valfri)",
+              "external_reduced_sensor": "Extern reducerad sensor (valfri)",
+              "external_mute_sensor": "Extern tystnadssensor (valfri)"
+            },
+            "data_description": {
+              "estimation_sensor": "Valfri: Extern sensor för förbrukningsuppskattning. Lämna tom för att använda inbyggd uppskattning",
+              "external_reduced_sensor": "Valfri binärsensor. När PÅ aktiveras reducerad tariff",
+              "external_mute_sensor": "Valfri binärsensor. När PÅ tystas tariffen helt"
             }
           }
         }
       }
+    },
+    "error": {
+      "daily_peaks_averaged_incompatible": "'Medelvärde av N högsta toppar per dag' kräver att 'Räkna bara en topp per dag' är aktiverat. Aktivera det eller ställ in medelvärde till 1."
     }
   },
   "selector": {
@@ -342,14 +404,32 @@
     },
     "input_unit": {
       "options": {
-        "Wh": "Wh",
-        "kWh": "kWh"
+        "auto": "Auto (detekteras från sensor)",
+        "Wh": "Wh – Wattimme (energi)",
+        "kWh": "kWh – Kilowattimme (energi)",
+        "W": "W – Watt (effektsensor, integralen beräknas)",
+        "kW": "kW – Kilowatt (effektsensor, integralen beräknas)"
       }
     },
     "output_unit": {
       "options": {
         "W": "W (Watt)",
         "kW": "kW (Kilowatt)"
+      }
+    },
+    "reset_interval": {
+      "options": {
+        "weekly": "Veckovis",
+        "monthly": "Månadsvis",
+        "manual": "Endast manuellt"
+      }
+    },
+    "currency": {
+      "options": {
+        "SEK": "SEK – Svenska kronor",
+        "EUR": "EUR – Euro",
+        "USD": "USD – US-dollar",
+        "custom": "Anpassad (ISO 4217)"
       }
     }
   },
@@ -358,11 +438,14 @@
       "target": {
         "name": "Mål"
       },
-      "relative_to_target": {
-        "name": "Uppskattning relativt mål"
+      "immediate_headroom": {
+        "name": "Omedelbart utrymme"
       },
-      "percentage_of_target": {
-        "name": "Uppskattning i procent av mål"
+      "consumption_pace_deviation": {
+        "name": "Förbrukningsavvikelse från ideal takt"
+      },
+      "target_usage_percentage": {
+        "name": "Målanvändning %"
       },
       "daily_peak": {
         "name": "Dagstopp"
@@ -375,51 +458,96 @@
           "active": "Aktiv"
         }
       },
-      "running_peak_1": {
-        "name": "Löpande Topp 1"
+      "period_peak_1": {
+        "name": "Period Topp 1"
       },
-      "running_peak_2": {
-        "name": "Löpande Topp 2"
+      "period_peak_2": {
+        "name": "Period Topp 2"
       },
-      "running_peak_3": {
-        "name": "Löpande Topp 3"
+      "period_peak_3": {
+        "name": "Period Topp 3"
       },
-      "running_peak_4": {
-        "name": "Löpande Topp 4"
+      "period_peak_4": {
+        "name": "Period Topp 4"
       },
-      "running_peak_5": {
-        "name": "Löpande Topp 5"
+      "period_peak_5": {
+        "name": "Period Topp 5"
       },
-      "running_peak_6": {
-        "name": "Löpande Topp 6"
+      "period_peak_6": {
+        "name": "Period Topp 6"
       },
-      "running_peak_7": {
-        "name": "Löpande Topp 7"
+      "period_peak_7": {
+        "name": "Period Topp 7"
       },
-      "running_peak_8": {
-        "name": "Löpande Topp 8"
+      "period_peak_8": {
+        "name": "Period Topp 8"
       },
-      "running_peak_9": {
-        "name": "Löpande Topp 9"
+      "period_peak_9": {
+        "name": "Period Topp 9"
       },
-      "running_peak_10": {
-        "name": "Löpande Topp 10"
+      "period_peak_10": {
+        "name": "Period Topp 10"
       },
-      "running_average": {
-        "name": "Löpande Medelvärde"
+      "period_average": {
+        "name": "Period Medelvärde"
       },
       "interval_consumption": {
         "name": "Intervallförbrukning"
       },
-      "interval_consumption_estimate": {
-        "name": "Uppskattning för intervallets förbrukning"
+      "daily_sub_peak_1": {
+        "name": "Daglig deltopp 1"
       },
-      "power_grid_peak_tariff": {
-        "name": "Effekttariff"
+      "daily_sub_peak_2": {
+        "name": "Daglig deltopp 2"
       },
-      "cost_increase_estimate": {
-        "name": "Uppskattad kostnadsökning"
+      "daily_sub_peak_3": {
+        "name": "Daglig deltopp 3"
+      },
+      "daily_sub_peak_4": {
+        "name": "Daglig deltopp 4"
+      },
+      "daily_sub_peak_5": {
+        "name": "Daglig deltopp 5"
+      },
+      "cost_increase_forecast": {
+        "name": "Prognos kostnadsökning"
+      },
+      "interval_consumption_forecast": {
+        "name": "Prognos intervalförbrukning"
+      },
+      "daily_peak_average": {
+        "name": "Dagligt toppvärde (snitt)"
+      },
+      "safe_headroom": {
+        "name": "Säker marginal"
+      },
+      "period_cost": {
+        "name": "Periodkostnad"
+      },
+      "target_headroom": {
+        "name": "Målmarginal"
       }
+    }
+  },
+  "services": {
+    "reset_peak": {
+      "fields": {
+        "config_entry_id": {
+          "name": "Instans",
+          "description": "Peak Monitor-instansen att rikta mot. Utelämna för att tillämpa på alla instanser (fungerar utan val om du bara har en)."
+        }
+      }
+    }
+  },
+  "interval_minutes": {
+    "options": {
+      "6": "6 min",
+      "12": "12 min",
+      "15": "15 min",
+      "20": "20 min",
+      "30": "30 min",
+      "60": "60 min (1 timme)",
+      "120": "120 min (2 timmar)"
     }
   }
 }

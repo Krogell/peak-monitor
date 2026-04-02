@@ -19,10 +19,14 @@ CONF_WEEKEND_BEHAVIOR = "weekend_behavior"
 CONF_WEEKEND_START_HOUR = "weekend_start_hour"
 CONF_WEEKEND_END_HOUR = "weekend_end_hour"
 CONF_RESET_VALUE = "reset_value"
+CONF_RESET_INTERVAL = "reset_interval"
+CONF_INTERVAL_MINUTES = "interval_minutes"
 CONF_SENSOR_RESETS_EVERY_HOUR = "sensor_resets_every_hour"
 CONF_INPUT_UNIT = "input_unit"
 CONF_OUTPUT_UNIT = "output_unit"
 CONF_ONLY_ONE_PEAK_PER_DAY = "only_one_peak_per_day"
+CONF_DAILY_PEAKS_AVERAGED = "daily_peaks_averaged"
+CONF_CURRENCY = "currency"
 
 # Reduced tariff configuration
 CONF_DAILY_REDUCED_TARIFF_ENABLED = "daily_reduced_tariff_enabled"
@@ -39,10 +43,48 @@ DEFAULT_ACTIVE_END_HOUR = 21
 DEFAULT_ACTIVE_MONTHS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
 DEFAULT_NUMBER_OF_PEAKS = 3
 DEFAULT_RESET_VALUE = 500
+DEFAULT_RESET_INTERVAL = "monthly"
+DEFAULT_INTERVAL_MINUTES = 60
+INTERVAL_OPTIONS = ["6", "12", "15", "20", "30", "60", "120"]
 DEFAULT_SENSOR_RESETS_EVERY_HOUR = False
 DEFAULT_INPUT_UNIT = "Wh"
+INPUT_UNIT_AUTO = "auto"  # Sentinel: rely on auto-detection from sensor unit_of_measurement
 DEFAULT_OUTPUT_UNIT = "W"
 DEFAULT_ONLY_ONE_PEAK_PER_DAY = True
+DEFAULT_DAILY_PEAKS_AVERAGED = 1
+DEFAULT_CURRENCY = "SEK"
+
+# Reset interval option keys
+RESET_INTERVAL_WEEKLY = "weekly"
+RESET_INTERVAL_MONTHLY = "monthly"
+RESET_INTERVAL_MANUAL = "manual"
+RESET_INTERVAL_OPTIONS = [RESET_INTERVAL_WEEKLY, RESET_INTERVAL_MONTHLY, RESET_INTERVAL_MANUAL]
+
+# Currency option keys
+CURRENCY_SEK = "SEK"
+CURRENCY_EUR = "EUR"
+CURRENCY_USD = "USD"
+CURRENCY_CUSTOM = "custom"
+CURRENCY_OPTIONS = [CURRENCY_SEK, CURRENCY_EUR, CURRENCY_USD, CURRENCY_CUSTOM]
+
+# ISO 4217 currencies for validation (common subset)
+ISO_4217_CURRENCIES = [
+    "AED","AFN","ALL","AMD","ANG","AOA","ARS","AUD","AWG","AZN","BAM","BBD","BDT","BGN",
+    "BHD","BIF","BMD","BND","BOB","BRL","BSD","BTN","BWP","BYN","BZD","CAD","CDF","CHF",
+    "CLP","CNY","COP","CRC","CUP","CVE","CZK","DJF","DKK","DOP","DZD","EGP","ERN","ETB",
+    "EUR","FJD","FKP","GBP","GEL","GHS","GIP","GMD","GNF","GTQ","GYD","HKD","HNL","HRK",
+    "HTG","HUF","IDR","ILS","INR","IQD","IRR","ISK","JMD","JOD","JPY","KES","KGS","KHR",
+    "KMF","KPW","KRW","KWD","KYD","KZT","LAK","LBP","LKR","LRD","LSL","LYD","MAD","MDL",
+    "MGA","MKD","MMK","MNT","MOP","MRU","MUR","MVR","MWK","MXN","MYR","MZN","NAD","NGN",
+    "NIO","NOK","NPR","NZD","OMR","PAB","PEN","PGK","PHP","PKR","PLN","PYG","QAR","RON",
+    "RSD","RUB","RWF","SAR","SBD","SCR","SDG","SEK","SGD","SHP","SLL","SOS","SRD","SSP",
+    "STN","SVC","SYP","SZL","THB","TJS","TMT","TND","TOP","TRY","TTD","TWD","TZS","UAH",
+    "UGX","USD","UYU","UZS","VES","VND","VUV","WST","XAF","XCD","XOF","XPF","YER","ZAR",
+    "ZMW","ZWL"
+]
+
+# Service names
+SERVICE_RESET_PEAK = "reset_peak"
 
 # Default reduced tariff values
 DEFAULT_DAILY_REDUCED_TARIFF_ENABLED = False
@@ -62,17 +104,21 @@ DEFAULT_WEEKEND_START_HOUR = 6
 DEFAULT_WEEKEND_END_HOUR = 21
 
 # Sensor types
-SENSOR_TARIFF = "tariff"
+SENSOR_TARIFF = "period_average"
 SENSOR_TARGET = "target"
-SENSOR_RELATIVE = "relative"
+SENSOR_IMMEDIATE_HEADROOM = "immediate_headroom"
+SENSOR_RELATIVE = "target_headroom"
 SENSOR_DAILY_PEAK = "daily_peak"
-SENSOR_PERCENTAGE = "percentage"
+SENSOR_DAILY_SUB_PEAK = "daily_sub_peak"
+SENSOR_PERCENTAGE = "target_usage_percentage"
 SENSOR_COST = "cost"
 SENSOR_COST_INCREASE = "cost_increase"
 SENSOR_INTERNAL_ESTIMATION = "internal_estimation"
 SENSOR_INTERVAL_CONSUMPTION = "interval_consumption"
 SENSOR_HOUR_CONSUMPTION = "hour_consumption"
 SENSOR_ACTIVE = "active"  # Moved from binary_sensor
+SENSOR_LINEAR_DEVIATION = "linear_deviation"
+SENSOR_SAFE_HEADROOM = "safe_headroom"
 
 # Active state enum values (internal use)
 ACTIVE_STATE_OFF = "off"
@@ -144,7 +190,8 @@ WEEKEND_BEHAVIOR_OPTIONS = [BEHAVIOR_NO_TARIFF, BEHAVIOR_REDUCED_TARIFF, BEHAVIO
 HOLIDAY_BEHAVIOR_OPTIONS = [BEHAVIOR_NO_TARIFF, BEHAVIOR_REDUCED_TARIFF]
 
 # Input unit options (keys only, labels from translations)
-INPUT_UNIT_OPTIONS = [UNIT_WH, UNIT_KWH]
+# Includes energy (Wh/kWh) and power (W/kW) inputs
+INPUT_UNIT_OPTIONS = [INPUT_UNIT_AUTO, UNIT_WH, UNIT_KWH, UNIT_W, UNIT_KW]
 
 # Output unit options (keys only, labels from translations)
 OUTPUT_UNIT_OPTIONS = [UNIT_W, UNIT_KW]
